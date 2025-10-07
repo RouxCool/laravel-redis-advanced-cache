@@ -19,5 +19,5 @@ A powerful Redis-based caching system for Laravel applications, designed to auto
 Install the package via Composer:
 
 ```bash
-composer require your-username/laravel-redis-advanced-cache
+composer require rouxcool/laravel-redis-advanced-cache
 php artisan vendor:publish --tag=config --provider="RedisAdvancedCache\Providers\RedisCacheServiceProvider"
