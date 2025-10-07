@@ -63,7 +63,7 @@ class RedisCacheManager
                 $keyCache = RedisCacheService::generateCacheKey(
                     $path,
                     $request->method(),
-                    is_int($this->userId) ? $this->userId : null,
+                    $this->userId ?? null,
                     $request->input(),
                     $request->query()
                 );
