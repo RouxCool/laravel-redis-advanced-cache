@@ -35,12 +35,16 @@ class RedisCacheService
 
     private function initRedis(): void
     {
-        if (!$this->enabled) return;
+        if (!$this->enabled) {
+            return;
+        }
 
         try {
             $this->redis = new \Redis();
             $this->redis->connect($this->host, $this->port);
-            if ($this->password) $this->redis->auth($this->password);
+            if ($this->password) {
+                $this->redis->auth($this->password);
+            }
             $this->redis->select($this->db);
         } catch (\Throwable $e) {
             $this->redis = null;
@@ -54,7 +58,9 @@ class RedisCacheService
 
     public function delete(string $pattern): void
     {
-        if (!$this->enabled || !$this->redis) return;
+        if (!$this->enabled || !$this->redis) {
+            return;
+        }
 
         try {
             $cursor = null;
@@ -64,14 +70,16 @@ class RedisCacheService
                     'count' => $this->scanCount,
                 ]);
 
-                if ($response === false) break;
+                if ($response === false) {
+                    break;
+                }
 
                 [$cursor, $results] = $response;
-                $results = array_map(fn($key) => Str::replace($this->prefix, '', (string)$key), $results);
-                if (!empty($results)) $this->redis->del($results);
-
+                $results = array_map(fn ($key) => Str::replace($this->prefix, '', (string) $key), $results);
+                if (!empty($results)) {
+                    $this->redis->del($results);
+                }
             } while ($cursor !== 0 && $cursor !== null);
-
         } catch (\Throwable $e) {
             $this->redis = null;
         }
@@ -79,7 +87,9 @@ class RedisCacheService
 
     public function listenToWriteQueries(): void
     {
-        if (!$this->enabled || !$this->redis) return;
+        if (!$this->enabled || !$this->redis) {
+            return;
+        }
 
         try {
             DB::listen(function ($query) {
@@ -103,35 +113,35 @@ class RedisCacheService
         $relations = \RedisAdvancedCache\Utils\RedisCacheUtils::extractRelationsFromSQL($sql);
         $mainTable = \RedisAdvancedCache\Utils\RedisCacheUtils::getMainTable($sql);
 
-        if ($mainTable) $relations[] = $mainTable;
+        if ($mainTable) {
+            $relations[] = $mainTable;
+        }
 
         return array_unique($relations);
     }
 
-    public static function generateCacheKey(
-        string $path,
-        string $method,
-        ?int $userId = null,
-        array $postBody = [],
-        array $queryInput = []
-    ): string {
+    public static function generateCacheKey(string $path, string $method, ?int $userId = null, array $postBody = [], array $queryInput = []): string
+    {
         $pattern = config('redis_advanced_cache.pattern');
         $identifier = config('redis_advanced_cache.key.identifier');
 
+        if (!$pattern || $pattern === 'default') {
+            $pattern = '@PREFIX:@UUID:@NAME:$PATH:$METHOD:$USER_ID:$BODY_INPUT:$QUERY_INPUT';
+        }
         $key = str_replace(
-            ['@PREFIX','@UUID','@NAME'],
+            ['@PREFIX', '@UUID', '@NAME'],
             [$identifier['prefix'] ?? 'cache_', $identifier['uuid'] ?? 'uuid', $identifier['name'] ?? 'myapp'],
             $pattern
         );
 
         return str_replace(
-            ['$PATH','$METHOD','$USER_ID','$BODY_INPUT','$QUERY_INPUT'],
+            ['$PATH', '$METHOD', '$USER_ID', '$BODY_INPUT', '$QUERY_INPUT'],
             [
                 $path,
                 strtoupper($method),
                 $userId ?? 'guest',
-                !empty($postBody) ? md5(json_encode($postBody)) : 'empty',
-                !empty($queryInput) ? md5(http_build_query($queryInput)) : 'empty',
+                !empty($postBody) ? md5(json_encode($postBody)) : '-',
+                !empty($queryInput) ? md5(http_build_query($queryInput)) : '-',
             ],
             $key
         );
