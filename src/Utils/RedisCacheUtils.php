@@ -284,12 +284,12 @@ class RedisCacheUtils
      *
      * @param string $path
      * @param string $method
-     * @param int|null $userId
+     * @param int|string|null $userId
      * @param array $postBody
      * @param array $queryInput
      * @return string
      */    
-    public static function generateCacheKey(string $path, string $method, ?int $userId = null, array $postBody = [], array $queryInput = []): string
+    public static function generateCacheKey(string $path, string $method, int|string|null $userId = null, array $postBody = [], array $queryInput = []): string
     {
         $pattern = config('redis_advanced_cache.pattern');
         $identifier = config('redis_advanced_cache.key_identifier');
