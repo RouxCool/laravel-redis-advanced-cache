@@ -5,7 +5,6 @@ namespace RedisAdvancedCache\Middleware;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
 use RedisAdvancedCache\Services\RedisCacheService;
 use RedisAdvancedCache\Utils\RedisCacheUtils;
 
@@ -42,7 +41,6 @@ class RedisCacheManager
             $this->redis->select((int) config('redis_advanced_cache.connection.database', 1));
         } catch (\Throwable $e) {
             $this->redis = null;
-            Log::error('Redis Cache Manager failed to connect to Redis: '.$e->getMessage());
         }
     }
 
