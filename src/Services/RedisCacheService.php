@@ -2,7 +2,6 @@
 
 namespace RedisAdvancedCache\Services;
 
-use App\Utils\Cache\RedisCacheUtils;
 use Illuminate\Contracts\Redis\Factory;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -10,82 +9,133 @@ use Illuminate\Support\Str;
 
 class RedisCacheService
 {
-    protected ?Factory $redis;
+    protected ?\Illuminate\Contracts\Redis\Factory $redis = null;
     protected string $prefix;
     protected bool $enabled;
-    protected int $count;
+    protected int $scanCount;
+    protected int $ttl;
+    protected string $host;
+    protected int $port;
+    protected ?string $password;
+    protected int $db;
 
     public function __construct()
     {
-        $this->prefix = config('database.redis.options.prefix');
-        $this->enabled = (bool) config('database.redis.advanced_cache.enabled');
-        $this->count = 300;
-        self::initRedis();
+        $this->enabled = (bool) config('redis_advanced_cache.enabled', true);
+        $this->prefix = config('redis_advanced_cache.key.identifier.prefix', 'cache_');
+        $this->scanCount = (int) config('redis_advanced_cache.options.cache_flush_scan_count', 300);
+        $this->ttl = (int) config('redis_advanced_cache.options.ttl', 86400);
+
+        $conn = config('redis_advanced_cache.connection');
+        $this->host = $conn['host'] ?? '127.0.0.1';
+        $this->port = $conn['port'] ?? 6379;
+        $this->password = $conn['password'] ?? null;
+        $this->db = $conn['database'] ?? 1;
+
+        $this->initRedis();
     }
 
     private function initRedis(): void
     {
-        if ($this->enabled) {
-            try {
-                $this->redis = Cache::store('redis')->getRedis();
-                $this->redis->select(1);
-            } catch (\Throwable $e) {
-                $this->redis = null;
-            }
+        if (!$this->enabled) return;
+
+        try {
+            $this->redis = new \Redis();
+            $this->redis->connect($this->host, $this->port);
+            if ($this->password) $this->redis->auth($this->password);
+            $this->redis->select($this->db);
+        } catch (\Throwable $e) {
+            $this->redis = null;
         }
+    }
+
+    public function getRedis(): ?\Redis
+    {
+        return $this->redis;
     }
 
     public function delete(string $pattern): void
     {
-        if ($this->enabled && isset($this->redis)) {
-            try {
-                $cursor = null;
-                do {
-                    $response = $this->redis->scan($cursor, [
-                        'match' => "*$pattern*",
-                        'count' => $this->count,
-                    ]);
+        if (!$this->enabled || !$this->redis) return;
 
-                    if ($response === false) {
-                        break;
-                    }
-                    [$cursor, $results] = $response;
-                    $results = array_map(fn ($key) => Str::replace($this->prefix, '', (string) $key), $results);
+        try {
+            $cursor = null;
+            do {
+                $response = $this->redis->scan($cursor, [
+                    'match' => "*$pattern*",
+                    'count' => $this->scanCount,
+                ]);
 
-                    if (!empty($results)) {
-                        $this->redis->del($results);
-                    }
-                } while ($cursor !== 0 && $cursor !== null);
-            } catch (\Throwable $e) {
-                $this->redis = null;
-            }
+                if ($response === false) break;
+
+                [$cursor, $results] = $response;
+                $results = array_map(fn($key) => Str::replace($this->prefix, '', (string)$key), $results);
+                if (!empty($results)) $this->redis->del($results);
+
+            } while ($cursor !== 0 && $cursor !== null);
+
+        } catch (\Throwable $e) {
+            $this->redis = null;
         }
     }
 
     public function listenToWriteQueries(): void
     {
-        if ($this->enabled && isset($this->redis)) {
-            try {
-                DB::listen(function ($query) {
-                    if (RedisCacheUtils::detectWriteOperation($query->sql) && RedisCacheUtils::filterSQL($query->sql)) {
-                        $relations = RedisCacheUtils::extractRelationsFromSQL($query->sql);
-                        $mainTable = RedisCacheUtils::getMainTable($query->sql);
-                        $mainTable = Str::replace('-', '_', $mainTable);
+        if (!$this->enabled || !$this->redis) return;
 
-                        if (is_array($relations)) {
-                            foreach ($relations as $table) {
-                                $this->delete(":$table:");
-                            }
-                        }
-
-                        if ($mainTable) {
-                            $this->delete(":$mainTable:");
-                        }
+        try {
+            DB::listen(function ($query) {
+                if ($table = $this->getAffectedTables($query->sql)) {
+                    foreach ($table as $t) {
+                        $this->delete(":$t:");
                     }
-                });
-            } catch (\Throwable $e) {
-                $this->redis = null;
-            }
+                }
+            });
+        } catch (\Throwable $e) {
+            $this->redis = null;
         }
+    }
+
+    private function getAffectedTables(string $sql): array
+    {
+        if (!($operation = \RedisAdvancedCache\Utils\RedisCacheUtils::detectWriteOperation($sql))) {
+            return [];
+        }
+
+        $relations = \RedisAdvancedCache\Utils\RedisCacheUtils::extractRelationsFromSQL($sql);
+        $mainTable = \RedisAdvancedCache\Utils\RedisCacheUtils::getMainTable($sql);
+
+        if ($mainTable) $relations[] = $mainTable;
+
+        return array_unique($relations);
+    }
+
+    public static function generateCacheKey(
+        string $path,
+        string $method,
+        ?int $userId = null,
+        array $postBody = [],
+        array $queryInput = []
+    ): string {
+        $pattern = config('redis_advanced_cache.pattern');
+        $identifier = config('redis_advanced_cache.key.identifier');
+
+        $key = str_replace(
+            ['@PREFIX','@UUID','@NAME'],
+            [$identifier['prefix'] ?? 'cache_', $identifier['uuid'] ?? 'uuid', $identifier['name'] ?? 'myapp'],
+            $pattern
+        );
+
+        return str_replace(
+            ['$PATH','$METHOD','$USER_ID','$BODY_INPUT','$QUERY_INPUT'],
+            [
+                $path,
+                strtoupper($method),
+                $userId ?? 'guest',
+                !empty($postBody) ? md5(json_encode($postBody)) : 'empty',
+                !empty($queryInput) ? md5(http_build_query($queryInput)) : 'empty',
+            ],
+            $key
+        );
     }
 }
