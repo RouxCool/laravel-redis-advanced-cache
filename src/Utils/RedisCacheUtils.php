@@ -13,7 +13,7 @@ class RedisCacheUtils
 
     public static function isCacheableRestApi(Request $request): bool
     {
-        return auth()->check() && !self::isWriteOperationRestAPI($request);
+        return auth()->check() && !self::isWriteOperationRestAPI($request) && config('redis_advanced_cache.apis.rest');
     }
 
     private static function isWriteOperationRestAPI(Request $request): bool
@@ -44,7 +44,7 @@ class RedisCacheUtils
 
     public static function isCacheableOrion(Request $request): bool
     {
-        return auth()->check() && !self::isWriteOperationOrion($request);
+        return auth()->check() && !self::isWriteOperationOrion($request) && config('redis_advanced_cache.apis.orion');
     }
 
     private static function isWriteOperationOrion(Request $request): bool
