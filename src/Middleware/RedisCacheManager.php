@@ -12,10 +12,10 @@ use RedisAdvancedCache\Utils\RedisCacheUtils;
 class RedisCacheManager
 {
     protected ?\Illuminate\Contracts\Redis\Factory $redis = null;
+    protected bool $enabled;
     protected string $prefix;
     protected string $appName;
     protected string $appUuid;
-    protected bool $enabled;
     protected string|int $userId;
     protected int $ttl;
 
@@ -27,7 +27,6 @@ class RedisCacheManager
         $this->appUuid = config('redis_advanced_cache.key.identifier.uuid', 'uuid');
         $this->ttl = (int) config('redis_advanced_cache.options.ttl', 86400);
         $this->userId = auth()->check() ? auth()->id() : 'guest';
-        Log::info('Redis Cache Manager initialized for user '.$this->userId);
 
         $this->initRedis();
     }
@@ -63,24 +62,17 @@ class RedisCacheManager
                 $cachable = RedisCacheUtils::isCacheableOrion($request);
             }
 
-            Log::info(1);
-
             if ($cachable && $path = RedisCacheUtils::resolveMainTable($request)) {
-                Log::info(2);
                 $noCache = $request->input('cache.noCache') ?? $request->query('noCache') ?? false;
                 $updateCache = $request->input('cache.updateCache') ?? $request->query('updateCache') ?? false;
 
-                Log::info(2.1);
-
-                $keyCache = RedisCacheService::generateCacheKey(
+                $keyCache = RedisCacheUtils::generateCacheKey(
                     $path,
                     $request->method(),
                     $this->userId || null,
                     $request->input(),
                     $request->query()
                 );
-
-                Log::info(3 .' - '.$keyCache);
 
                 if ($updateCache && is_array($updateCache)) {
                     foreach ($updateCache as $updateCacheKey) {

@@ -278,4 +278,41 @@ class RedisCacheUtils
 
         return !in_array($sql, $filters);
     }
+
+    /**
+     * Generate a unique cache key based on request parameters and configuration.
+     *
+     * @param string $path
+     * @param string $method
+     * @param int|null $userId
+     * @param array $postBody
+     * @param array $queryInput
+     * @return string
+     */    
+    public static function generateCacheKey(string $path, string $method, ?int $userId = null, array $postBody = [], array $queryInput = []): string
+    {
+        $pattern = config('redis_advanced_cache.pattern');
+        $identifier = config('redis_advanced_cache.key.identifier');
+
+        if (!$pattern || $pattern === 'default') {
+            $pattern = '@PREFIX:@UUID:@NAME:$PATH:$METHOD:$USER_ID:$BODY_INPUT:$QUERY_INPUT';
+        }
+        $key = str_replace(
+            ['@PREFIX', '@UUID', '@NAME'],
+            [$identifier['prefix'] ?? 'cache_', $identifier['uuid'] ?? 'uuid', $identifier['name'] ?? 'myapp'],
+            $pattern
+        );
+
+        return str_replace(
+            ['$PATH', '$METHOD', '$USER_ID', '$BODY_INPUT', '$QUERY_INPUT'],
+            [
+                $path,
+                strtoupper($method),
+                $userId ?? 'guest',
+                !empty($postBody) ? md5(json_encode($postBody)) : '-',
+                !empty($queryInput) ? md5(http_build_query($queryInput)) : '-',
+            ],
+            $key
+        );
+    }
 }

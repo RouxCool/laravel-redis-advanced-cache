@@ -23,6 +23,7 @@ class RedisCacheService
         $this->prefix = config('redis_advanced_cache.key.identifier.prefix', 'cache_');
         $this->scanCount = (int) config('redis_advanced_cache.options.cache_flush_scan_count', 300);
         $this->ttl = (int) config('redis_advanced_cache.options.ttl', 86400);
+        $this->pattern = (int) config('redis_advanced_cache.pattern', 'default');
 
         $conn = config('redis_advanced_cache.connection');
         $this->host = $conn['host'] ?? '127.0.0.1';
@@ -118,32 +119,5 @@ class RedisCacheService
         }
 
         return array_unique($relations);
-    }
-
-    public static function generateCacheKey(string $path, string $method, ?int $userId = null, array $postBody = [], array $queryInput = []): string
-    {
-        $pattern = config('redis_advanced_cache.pattern');
-        $identifier = config('redis_advanced_cache.key.identifier');
-
-        if (!$pattern || $pattern === 'default') {
-            $pattern = '@PREFIX:@UUID:@NAME:$PATH:$METHOD:$USER_ID:$BODY_INPUT:$QUERY_INPUT';
-        }
-        $key = str_replace(
-            ['@PREFIX', '@UUID', '@NAME'],
-            [$identifier['prefix'] ?? 'cache_', $identifier['uuid'] ?? 'uuid', $identifier['name'] ?? 'myapp'],
-            $pattern
-        );
-
-        return str_replace(
-            ['$PATH', '$METHOD', '$USER_ID', '$BODY_INPUT', '$QUERY_INPUT'],
-            [
-                $path,
-                strtoupper($method),
-                $userId ?? 'guest',
-                !empty($postBody) ? md5(json_encode($postBody)) : '-',
-                !empty($queryInput) ? md5(http_build_query($queryInput)) : '-',
-            ],
-            $key
-        );
     }
 }
