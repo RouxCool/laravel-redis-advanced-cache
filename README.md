@@ -21,5 +21,7 @@ Install the package via Composer:
 ```bash
 composer require rouxcool/laravel-redis-advanced-cache
 ```
+
+```
 php artisan vendor:publish --tag=config --provider="RedisAdvancedCache\Providers\RedisCacheServiceProvider"
 ```
