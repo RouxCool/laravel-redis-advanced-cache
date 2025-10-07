@@ -9,13 +9,30 @@ use Orion\Http\Controllers\Controller as OrionBaseController;
 
 class RedisCacheUtils
 {
-    // Managed by RestAPI
+    // ================================
+    // REST API Cache Checks
+    // ================================
 
+    /**
+     * Determine if a REST API request is cacheable.
+     *
+     * @param Request $request
+     * @return bool
+     */
     public static function isCacheableRestApi(Request $request): bool
     {
-        return auth()->check() && !self::isWriteOperationRestAPI($request) && config('redis_advanced_cache.apis.rest');
+        return auth()->check() 
+            && !self::isWriteOperationRestAPI($request) 
+            && config('redis_advanced_cache.apis.rest');
     }
 
+    /**
+     * Check if a REST API request is a write operation.
+     * Only 'search' is considered a read operation here.
+     *
+     * @param Request $request
+     * @return bool
+     */
     private static function isWriteOperationRestAPI(Request $request): bool
     {
         $segments = $request->route()?->getName() ?? '';
@@ -25,6 +42,12 @@ class RedisCacheUtils
         return !in_array($end, ['search']);
     }
 
+    /**
+     * Check if the current route is managed by a REST controller.
+     *
+     * @param Request $request
+     * @return bool
+     */
     public static function isRouteManagedByRestApi(Request $request): bool
     {
         if (!class_exists(RestBaseController::class)) {
@@ -40,13 +63,30 @@ class RedisCacheUtils
         return $controller instanceof RestBaseController;
     }
 
-    // Managed by Orion
+    // ================================
+    // Orion API Cache Checks
+    // ================================
 
+    /**
+     * Determine if an Orion API request is cacheable.
+     *
+     * @param Request $request
+     * @return bool
+     */
     public static function isCacheableOrion(Request $request): bool
     {
-        return auth()->check() && !self::isWriteOperationOrion($request) && config('redis_advanced_cache.apis.orion');
+        return auth()->check() 
+            && !self::isWriteOperationOrion($request) 
+            && config('redis_advanced_cache.apis.orion');
     }
 
+    /**
+     * Check if an Orion API request is a write operation.
+     * 'index', 'search', and 'show' are considered read operations.
+     *
+     * @param Request $request
+     * @return bool
+     */
     private static function isWriteOperationOrion(Request $request): bool
     {
         $segments = $request->route()?->getName() ?? '';
@@ -56,6 +96,12 @@ class RedisCacheUtils
         return !in_array($end, ['index', 'search', 'show']);
     }
 
+    /**
+     * Check if the current route is managed by an Orion controller.
+     *
+     * @param Request $request
+     * @return bool
+     */
     public static function isRouteManagedByOrion(Request $request): bool
     {
         if (!class_exists(OrionBaseController::class)) {
@@ -71,9 +117,17 @@ class RedisCacheUtils
         return $controller instanceof OrionBaseController;
     }
 
-    // Regex read SQL
+    // ================================
+    // SQL Analysis for Relations and Tables
+    // ================================
 
-    public static function extractRelationsFromSQL($sql)
+    /**
+     * Extract related tables from a SQL query by analyzing JOIN clauses.
+     *
+     * @param string $sql
+     * @return array
+     */
+    public static function extractRelationsFromSQL($sql): array
     {
         $joins = self::parseJoinsFromSql($sql);
         $relations = [];
@@ -81,6 +135,7 @@ class RedisCacheUtils
         foreach ($joins as $join) {
             $table = $join['right_table'];
 
+            // Skip system/technical tables
             if (preg_match('/_user$|^pivot|^model_has|^article_viewer|^media$/', $table)) {
                 continue;
             }
@@ -96,9 +151,13 @@ class RedisCacheUtils
         return $relations;
     }
 
-    // Regex read SQL Relations
-
-    public static function parseJoinsFromSql($sql)
+    /**
+     * Parse JOIN clauses from a SQL query.
+     *
+     * @param string $sql
+     * @return array
+     */
+    public static function parseJoinsFromSql($sql): array
     {
         $pattern = '/(JOIN|LEFT\s+JOIN|RIGHT\s+JOIN|INNER\s+JOIN|OUTER\s+JOIN)\s+([`"\[\]\w.-]+)\s+ON\s+([`"\[\]\w.-]+)\s*=\s*([`"\[\]\w.-]+)/ix';
 
@@ -119,8 +178,12 @@ class RedisCacheUtils
         return $results;
     }
 
-    // Get method SQL (INSERT, UPDATE, DELETE)
-
+    /**
+     * Detect if a SQL query is a write operation (INSERT, UPDATE, DELETE).
+     *
+     * @param string $sql
+     * @return string|null
+     */
     public static function detectWriteOperation(string $sql): ?string
     {
         $sql = ltrim($sql);
@@ -140,8 +203,12 @@ class RedisCacheUtils
         return null;
     }
 
-    // Get mainTable from SQL
-
+    /**
+     * Extract the main table from a SQL query.
+     *
+     * @param string $sql
+     * @return string|null
+     */
     public static function getMainTable(string $sql): ?string
     {
         $sql = ltrim(strtolower($sql));
@@ -161,8 +228,12 @@ class RedisCacheUtils
         return null;
     }
 
-    // Get mainTable from Request
-
+    /**
+     * Resolve the main table name from a Request based on its controller.
+     *
+     * @param Request $request
+     * @return string|null
+     */
     public static function resolveMainTable(Request $request): ?string
     {
         $action = $request->route()?->getActionName();
@@ -193,9 +264,13 @@ class RedisCacheUtils
         return null;
     }
 
-    // Filter request
-
-    public static function filterSQL($sql): ?string
+    /**
+     * Filter out specific SQL queries that should not be cached.
+     *
+     * @param string $sql
+     * @return bool
+     */
+    public static function filterSQL($sql): bool
     {
         $filters = [
             'update `users` set `last_authenticated_at` = ?, `users`.`updated_at` = ? where `id` = ?',
