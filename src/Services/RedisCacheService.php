@@ -20,7 +20,7 @@ class RedisCacheService
     public function __construct()
     {
         $this->enabled = (bool) config('redis_advanced_cache.enabled', true);
-        $this->prefix = config('redis_advanced_cache.key.identifier.prefix', 'cache_');
+        $this->prefix = config('redis_advanced_cache.key_identifier.prefix', 'cache_');
         $this->scanCount = (int) config('redis_advanced_cache.options.cache_flush_scan_count', 300);
         $this->ttl = (int) config('redis_advanced_cache.options.ttl', 86400);
         $this->pattern = (int) config('redis_advanced_cache.pattern', 'default');

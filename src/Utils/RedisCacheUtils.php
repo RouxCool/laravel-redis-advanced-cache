@@ -292,7 +292,7 @@ class RedisCacheUtils
     public static function generateCacheKey(string $path, string $method, ?int $userId = null, array $postBody = [], array $queryInput = []): string
     {
         $pattern = config('redis_advanced_cache.pattern');
-        $identifier = config('redis_advanced_cache.key.identifier');
+        $identifier = config('redis_advanced_cache.key_identifier');
 
         if (!$pattern || $pattern === 'default') {
             $pattern = '@PREFIX:@UUID:@NAME:$PATH:$METHOD:$USER_ID:$BODY_INPUT:$QUERY_INPUT';
