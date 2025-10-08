@@ -315,4 +315,16 @@ class RedisCacheUtils
             $key
         );
     }
+
+    /**
+     * Match a route path against a pattern.
+     * Supports wildcard '*' at the end of the pattern.
+     */
+    private function matchPattern(string $pattern, string $path): bool
+    {
+        // Convert wildcard to regex
+        $pattern = preg_quote($pattern, '/');
+        $pattern = str_replace('\*', '.*', $pattern);
+        return preg_match('/^'.$pattern.'$/', $path) === 1;
+    }
 }

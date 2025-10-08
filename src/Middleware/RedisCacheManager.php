@@ -17,6 +17,8 @@ class RedisCacheManager
     protected string $appUuid;
     protected string|int $userId;
     protected int $ttl;
+    protected array $whitelist;
+    protected array $blacklist;
 
     public function __construct()
     {
@@ -27,14 +29,15 @@ class RedisCacheManager
         $this->ttl = (int) config('redis_advanced_cache.options.ttl', 86400);
         $this->userId = auth()->check() ? auth()->id() : 'guest';
 
+        $this->whitelist = config('redis_advanced_cache.routes.whitelists', []);
+        $this->blacklist = config('redis_advanced_cache.routes.blacklists', []);
+
         $this->initRedis();
     }
 
     private function initRedis(): void
     {
-        if (!$this->enabled) {
-            return;
-        }
+        if (!$this->enabled) return;
 
         try {
             $this->redis = Cache::store('redis')->getRedis();
@@ -46,13 +49,30 @@ class RedisCacheManager
 
     public function handle(Request $request, \Closure $next)
     {
-        if (!$this->enabled || !$this->redis) {
-            return $next($request);
-        }
+        if (!$this->enabled || !$this->redis) return $next($request);
 
         try {
+            $path = $request->path();
+
+            // Check blacklist first
+            foreach ($this->blacklist as $pattern) {
+                if (RedisCacheUtils::matchPattern($pattern, $path)) {
+                    return $next($request); // route blacklisted, bypass cache
+                }
+            }
+
+            // Check whitelist
+            $forceCache = false;
+            foreach ($this->whitelist as $pattern) {
+                if (RedisCacheUtils::matchPattern($pattern, $path)) {
+                    $forceCache = true;
+                    break;
+                }
+            }
+
+            // Determine if route is normally cachable
             $cachable = false;
-            $path = null;
+            $tablePath = null;
 
             if (RedisCacheUtils::isRouteManagedByRestApi($request)) {
                 $cachable = RedisCacheUtils::isCacheableRestApi($request);
@@ -60,14 +80,19 @@ class RedisCacheManager
                 $cachable = RedisCacheUtils::isCacheableOrion($request);
             }
 
-            if ($cachable && $path = RedisCacheUtils::resolveMainTable($request)) {
+            // Force caching if whitelisted
+            if ($forceCache) {
+                $cachable = true;
+            }
+
+            if ($cachable && $tablePath = RedisCacheUtils::resolveMainTable($request)) {
                 $noCache = $request->input('cache.noCache') ?? $request->query('noCache') ?? false;
                 $updateCache = $request->input('cache.updateCache') ?? $request->query('updateCache') ?? false;
 
-                $keyCache = RedisCacheUtils::generateCacheKey(
-                    $path,
+                $keyCache = RedisCacheService::generateCacheKey(
+                    $tablePath,
                     $request->method(),
-                    $this->userId || null,
+                    $this->userId ?? null,
                     $request->input(),
                     $request->query()
                 );
@@ -101,6 +126,7 @@ class RedisCacheManager
 
                 return $response;
             }
+
         } catch (\Throwable $e) {
             // silently fail
         }
