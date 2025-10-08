@@ -137,8 +137,9 @@ class RedisCacheUtils
      * Parse JOIN clauses from a SQL query and return flushable tables
      * based on the configuration options: right_table, left_table, on_left, on_right.
      *
-     * @param string $sql The SQL query to analyze.
-     * @return array<string> List of tables or columns that should be flushed.
+     * @param string $sql the SQL query to analyze
+     *
+     * @return array<string> list of tables or columns that should be flushed
      */
     public static function getFlushableTablesFromSql(string $sql): array
     {
@@ -167,7 +168,8 @@ class RedisCacheUtils
     /**
      * Parse JOIN clauses from a SQL query.
      *
-     * @param string $sql The SQL query to analyze.
+     * @param string $sql the SQL query to analyze
+     *
      * @return array<int, array<string, string>> Each join contains keys: operation, type, right_table, left_table, on_left, on_right
      */
     public static function parseJoinsFromSql(string $sql): array
@@ -179,12 +181,12 @@ class RedisCacheUtils
         $results = [];
         foreach ($matches as $match) {
             $results[] = [
-                'operation'   => self::detectWriteOperation($sql),
-                'type'        => strtoupper(trim($match[1])),
+                'operation' => self::detectWriteOperation($sql),
+                'type' => strtoupper(trim($match[1])),
                 'right_table' => trim($match[2], '`[]"'),
-                'left_table'  => explode('.', trim($match[3], '`[]"'))[0],
-                'on_left'     => trim($match[3], '`[]"'),
-                'on_right'    => trim($match[4], '`[]"'),
+                'left_table' => explode('.', trim($match[3], '`[]"'))[0],
+                'on_left' => trim($match[3], '`[]"'),
+                'on_right' => trim($match[4], '`[]"'),
             ];
         }
 
