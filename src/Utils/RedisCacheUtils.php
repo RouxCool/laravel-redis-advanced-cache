@@ -399,38 +399,18 @@ class RedisCacheUtils
             $pattern = '@PREFIX:@UUID:@NAME:$PATH:$METHOD:$USER_ID:$BODY_INPUT:$QUERY_INPUT';
         }
 
-        $defaults = [
-            'path' => '-',
-            'method' => 'GET',
-            'user_id' => 'guest',
-            'body_input' => [],
-            'query_input' => [],
-            'extra' => [],
-        ];
+        $data = array_merge($params, $identifier);
+        $key = preg_replace_callback('/[@$](\w+)/', function ($matches) use ($data) {
+            $tag = strtolower($matches[1]);
 
-        $data = array_merge($defaults, $params);
+            if (isset($data[$tag]) && is_array($data[$tag])) {
+                return !empty($data[$tag]) ? md5(json_encode($data[$tag])) : '-';
+            }
 
-        $key = str_replace(
-            ['@PREFIX', '@UUID', '@NAME'],
-            [
-                $identifier['prefix'] ?? 'cache_',
-                $identifier['uuid'] ?? 'uuid',
-                $identifier['name'] ?? 'myapp',
-            ],
-            $pattern
-        );
+            return $data[$tag] ?? $matches[0];
+        }, $pattern);
 
-        return str_replace(
-            ['$PATH', '$METHOD', '$USER_ID', '$BODY_INPUT', '$QUERY_INPUT'],
-            [
-                $data['path'],
-                strtoupper($data['method']),
-                $data['user_id'],
-                !empty($data['body_input']) ? md5(json_encode($data['body_input'])) : '-',
-                !empty($data['query_input']) ? md5(http_build_query($data['query_input'])) : '-',
-            ],
-            $key
-        );
+        return $key;
     }
 
     /**
