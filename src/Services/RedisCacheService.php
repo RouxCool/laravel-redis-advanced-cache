@@ -33,7 +33,7 @@ class RedisCacheService
         $this->prefix = config('redis_advanced_cache.key_identifier.prefix', 'cache_');
         $this->scanCount = (int) config('redis_advanced_cache.options.cache_flush_scan_count', 300);
         $this->ttl = (int) config('redis_advanced_cache.options.ttl', 86400);
-        $this->pattern = (int) config('redis_advanced_cache.pattern', 'default');
+        $this->pattern = config('redis_advanced_cache.pattern', 'default');
         $this->listenEnabled = (bool) config('redis_advanced_cache.listen_queries', true);
 
         $conn = config('redis_advanced_cache.connection');
