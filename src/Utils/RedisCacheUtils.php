@@ -284,6 +284,44 @@ class RedisCacheUtils
     }
 
     // ================================
+    // Whitelist/Blacklist
+    // ================================
+
+    /**
+     * Check if a route is whitelisted.
+     *
+     * @param string $path
+     * @return bool
+     */
+    public static function isWhitelisted(string $path): bool
+    {
+        $whitelist = config('redis_advanced_cache.whitelists', []);
+        if (!($whitelist['enabled'] ?? false)) return false;
+
+        foreach ($whitelist['routes'] ?? [] as $pattern) {
+            if (RedisCacheUtils::matchPattern($pattern, $path)) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Check if a route is blacklisted.
+     *
+     * @param string $path
+     * @return bool
+     */
+    public static function isBlacklisted(string $path): bool
+    {
+        $blacklist = config('redis_advanced_cache.blacklists', []);
+        if (!($blacklist['enabled'] ?? false)) return false;
+
+        foreach ($blacklist['routes'] ?? [] as $pattern) {
+            if (RedisCacheUtils::matchPattern($pattern, $path)) return true;
+        }
+        return false;
+    }
+
+    // ================================
     // Miscs
     // ================================
 
@@ -315,23 +353,6 @@ class RedisCacheUtils
             ],
             $key
         );
-    }
-
-    /**
-     * Check if a route is whitelisted.
-     *
-     * @param string $path
-     * @return bool
-     */
-    public static function isWhitelisted(string $path): bool
-    {
-        $whitelist = config('redis_advanced_cache.whitelists', []);
-        if (!($whitelist['enabled'] ?? false)) return false;
-
-        foreach ($whitelist['routes'] ?? [] as $pattern) {
-            if (RedisCacheUtils::matchPattern($pattern, $path)) return true;
-        }
-        return false;
     }
 
     /**

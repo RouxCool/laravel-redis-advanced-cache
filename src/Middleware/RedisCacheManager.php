@@ -52,38 +52,6 @@ class RedisCacheManager
     }
 
     /**
-     * Check if a route is blacklisted.
-     *
-     * @param string $path
-     * @return bool
-     */
-    protected function isBlacklisted(string $path): bool
-    {
-        if (!($this->blacklist['enabled'] ?? false)) return false;
-
-        foreach ($this->blacklist['routes'] ?? [] as $pattern) {
-            if (RedisCacheUtils::matchPattern($pattern, $path)) return true;
-        }
-        return false;
-    }
-
-    /**
-     * Check if a route is whitelisted.
-     *
-     * @param string $path
-     * @return bool
-     */
-    protected function isWhitelisted(string $path): bool
-    {
-        if (!($this->whitelist['enabled'] ?? false)) return false;
-
-        foreach ($this->whitelist['routes'] ?? [] as $pattern) {
-            if (RedisCacheUtils::matchPattern($pattern, $path)) return true;
-        }
-        return false;
-    }
-
-    /**
      * Update specific cache keys if requested in the request.
      *
      * @param Request $request
@@ -164,7 +132,7 @@ class RedisCacheManager
         }
 
         try {
-            if ($this->isBlacklisted($path)) {
+            if (RedisCacheUtils::isBlacklisted($path)) {
                 $this->logDebug("[RedisCacheManager] ❗ Route blacklisted → $path");
                 return $next($request);
             }
