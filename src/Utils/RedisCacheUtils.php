@@ -40,9 +40,12 @@ class RedisCacheUtils
      */
     public static function isCacheableRestApi(Request $request): bool
     {
-        return auth()->check()
-            && !self::isWriteOperationRestAPI($request)
-            && config('redis_advanced_cache.apis.rest');
+        $cacheAuthenticatedOnly = config('redis_advanced_cache.options.cache_authenticated_only', true);
+        if ($cacheAuthenticatedOnly) {
+            return auth()->check() && !self::isWriteOperationRestAPI($request) && config('redis_advanced_cache.apis.rest');
+        } else {
+            return !self::isWriteOperationRestAPI($request) && config('redis_advanced_cache.apis.rest');
+        }
     }
 
     /**
@@ -95,9 +98,12 @@ class RedisCacheUtils
      */
     public static function isCacheableOrion(Request $request): bool
     {
-        return auth()->check()
-            && !self::isWriteOperationOrion($request)
-            && config('redis_advanced_cache.apis.orion');
+        $cacheAuthenticatedOnly = config('redis_advanced_cache.options.cache_authenticated_only', true);
+        if ($cacheAuthenticatedOnly) {
+            return auth()->check() && !self::isWriteOperationOrion($request) && config('redis_advanced_cache.apis.orion');
+        } else {
+            return !self::isWriteOperationOrion($request) && config('redis_advanced_cache.apis.orion');
+        }
     }
 
     /**
@@ -394,7 +400,7 @@ class RedisCacheUtils
      */
     public static function generateCacheKey(array $params): string
     {
-        $pattern = config('redis_advanced_cache.pattern') ?: self::$defaultPattern;
+        $pattern = config('redis_advanced_cache.pattern') !== 'default' ?: self::$defaultPattern;
         $identifier = config('redis_advanced_cache.key_identifier', []);
         $data = array_merge($params, $identifier);
 
