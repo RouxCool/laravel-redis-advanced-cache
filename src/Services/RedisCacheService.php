@@ -56,7 +56,7 @@ class RedisCacheService
     private function initRedis(): void
     {
         if (!$this->enabled) {
-            if ($this->debug) \Log::info('[RedisCacheService] Redis cache is disabled.');
+            if ($this->debug) \Log::debug('[RedisCacheService] ❗ Redis cache is disabled.');
             return;
         }
 
@@ -68,10 +68,10 @@ class RedisCacheService
             }
             $this->redis->select($this->db);
 
-            if ($this->debug) \Log::info('[RedisCacheService] Redis connection established successfully.');
+            if ($this->debug) \Log::debug('[RedisCacheService] ✅ Redis connection established successfully.');
         } catch (\Throwable $e) {
             $this->redis = null;
-            if ($this->debug) \Log::error('[RedisCacheService] Redis connection failed: '.$e->getMessage());
+            if ($this->debug) \Log::error('[RedisCacheService] ❌ Redis connection failed: '.$e->getMessage());
         }
     }
 
@@ -115,12 +115,12 @@ class RedisCacheService
 
                 if (!empty($results)) {
                     $this->redis->del($results);
-                    if ($this->debug) \Log::info('[RedisCacheService] Deleted cache keys: '.implode(', ', $results));
+                    if ($this->debug) \Log::debug('[RedisCacheService] ✅ Deleted cache keys: '.implode(', ', $results));
                 }
             } while ($cursor !== 0 && $cursor !== null);
         } catch (\Throwable $e) {
             $this->redis = null;
-            if ($this->debug) \Log::error('[RedisCacheService] Error deleting keys with pattern '.$pattern.': '.$e->getMessage());
+            if ($this->debug) \Log::error('[RedisCacheService] ❌ Error deleting keys with pattern '.$pattern.': '.$e->getMessage());
         }
     }
 
@@ -154,12 +154,12 @@ class RedisCacheService
                 [$cursor, $keys] = $response;
                 if (!empty($keys)) {
                     $this->redis->del($keys);
-                    if ($this->debug) \Log::info('[RedisCacheService] Flushed cache keys: '.implode(', ', $keys));
+                    if ($this->debug) \Log::debug('[RedisCacheService] ✅ Flushed cache keys: '.implode(', ', $keys));
                 }
             } while ($cursor !== 0 && $cursor !== null);
         } catch (\Throwable $e) {
             $this->redis = null;
-            if ($this->debug) \Log::error('[RedisCacheService] Error flushing Redis cache: '.$e->getMessage());
+            if ($this->debug) \Log::error('[RedisCacheService] ❌ Error flushing Redis cache: '.$e->getMessage());
         }
     }
 
@@ -174,7 +174,7 @@ class RedisCacheService
     public function listenToWriteQueries(): void
     {
         if (!$this->enabled || !$this->redis || !$this->listenEnabled) {
-            if ($this->debug) \Log::info('[RedisCacheService] Write query listening is disabled.');
+            if ($this->debug) \Log::warning('[RedisCacheService] ❗ Write query listening is disabled.');
             return;
         }
 
@@ -184,15 +184,15 @@ class RedisCacheService
                     $flushables = RedisCacheUtils::getFlushableTablesFromSql($query->sql);
                     foreach ($flushables as $flushKey) {
                         $this->delete(":$flushKey:");
-                        if ($this->debug) \Log::info('[RedisCacheService] Cache invalidated for table: '.$flushKey.' (SQL: '.$query->sql.')');
+                        if ($this->debug) \Log::debug('[RedisCacheService] ✅ Cache invalidated for table: '.$flushKey.' (SQL: '.$query->sql.')');
                     }
                 }
             });
 
-            if ($this->debug) \Log::info('[RedisCacheService] Listening to database write queries for cache invalidation.');
+            if ($this->debug) \Log::debug('[RedisCacheService] ❓ Listening to database write queries for cache invalidation.');
         } catch (\Throwable $e) {
             $this->redis = null;
-            if ($this->debug) \Log::error('[RedisCacheService] Error listening to write queries: '.$e->getMessage());
+            if ($this->debug) \Log::error('[RedisCacheService] ❌ Error listening to write queries: '.$e->getMessage());
         }
     }
 }
