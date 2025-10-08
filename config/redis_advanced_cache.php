@@ -13,7 +13,7 @@ return [
     */
 
     'enabled' => env('REDIS_ENABLED', true),
-    'debug' => env('REDIS_ADVANCED_CACHE_DEBUG', false),
+    'debug' => true,
 
     /*
     |--------------------------------------------------------------------------
