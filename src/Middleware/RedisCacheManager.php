@@ -51,14 +51,14 @@ class RedisCacheManager
     public function handle(Request $request, \Closure $next)
     {
         $path = $request->path();
-        if ($this->debug) \Log::debug('[RedisCacheManager] Route target : ' . $path);
+        if ($this->debug) \Log::debug('[RedisCacheManager] ❓ Route target : ' . $path);
         if ($this->enabled && $this->redis) {
             try {
                 if (($this->blacklist['enabled'] ?? false) && !empty($this->blacklist['routes'])) {
                     foreach ($this->blacklist['routes'] as $pattern) {
                         if (RedisCacheUtils::matchPattern($pattern, $path)) {
                             if ($this->debug) \Log::debug('[RedisCacheManager] ❗ Route blacklisted → '.$path);
-                            if ($this->debug) \Log::debug('[RedisCacheManager] Cancel cache');
+                            if ($this->debug) \Log::debug('[RedisCacheManager] ❗ Cancel caching');
                             return $next($request);
                         }
                     }
@@ -68,7 +68,7 @@ class RedisCacheManager
                 if (($this->whitelist['enabled'] ?? false) && !empty($this->whitelist['routes'])) {
                     foreach ($this->whitelist['routes'] as $pattern) {
                         if (RedisCacheUtils::matchPattern($pattern, $path)) {
-                            if ($this->debug) \Log::debug('[RedisCacheManager] Route whitelisted → '.$path);
+                            if ($this->debug) \Log::debug('[RedisCacheManager] ✅ Route whitelisted → '.$path);
                             $forceCache = true;
                             break;
                         }
