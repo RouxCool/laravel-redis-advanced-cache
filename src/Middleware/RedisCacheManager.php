@@ -34,10 +34,10 @@ class RedisCacheManager
         $this->debug = (bool) config('redis_advanced_cache.debug', false);
 
         if ($this->debug) {
-            \Log::debug('=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=');
-            \Log::debug('');
-            \Log::debug('         [Redis Advanced Cache]');
-            \Log::debug('');
+            $this->logDebug('=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=');
+            $this->logDebug('');
+            $this->logDebug('         [Redis Advanced Cache]');
+            $this->logDebug('');
         }
 
         $this->cacheService = $cacheService;
@@ -79,23 +79,6 @@ class RedisCacheManager
 
         foreach ($this->whitelist['routes'] ?? [] as $pattern) {
             if (RedisCacheUtils::matchPattern($pattern, $path)) return true;
-        }
-        return false;
-    }
-
-    /**
-     * Determine if the request is cacheable.
-     *
-     * @param Request $request
-     * @return bool
-     */
-    protected function isCachable(Request $request): bool
-    {
-        if (RedisCacheUtils::isRouteManagedByRestApi($request)) {
-            return RedisCacheUtils::isCacheableRestApi($request);
-        }
-        if (RedisCacheUtils::isRouteManagedByOrion($request)) {
-            return RedisCacheUtils::isCacheableOrion($request);
         }
         return false;
     }
@@ -186,12 +169,12 @@ class RedisCacheManager
                 return $next($request);
             }
 
-            $forceCache = $this->isWhitelisted($path);
+            $forceCache = RedisCacheUtils::isWhitelisted($path);
             if ($forceCache) {
                 $this->logDebug("[RedisCacheManager] ✅ Route whitelisted → $path");
             }
 
-            $cachable = $this->isCachable($request) || $forceCache;
+            $cachable = RedisCacheUtils::isCachable($request) || $forceCache;
             if (!$cachable) return $next($request);
 
             $tablePath = RedisCacheUtils::resolveMainTable($request);

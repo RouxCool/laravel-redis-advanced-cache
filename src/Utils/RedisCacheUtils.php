@@ -9,6 +9,23 @@ use Orion\Http\Controllers\Controller as OrionBaseController;
 
 class RedisCacheUtils
 {
+    /**
+     * Determine if the request is cacheable.
+     *
+     * @param Request $request
+     * @return bool
+     */
+    public static function isCachable(Request $request): bool
+    {
+        if (self::isRouteManagedByRestApi($request)) {
+            return self::isCacheableRestApi($request);
+        }
+        if (self::isRouteManagedByOrion($request)) {
+            return self::isCacheableOrion($request);
+        }
+        return false;
+    }
+
     // ================================
     // REST API Cache Checks
     // ================================
@@ -266,6 +283,10 @@ class RedisCacheUtils
         return null;
     }
 
+    // ================================
+    // Miscs
+    // ================================
+
     /**
      * Generate a unique cache key based on request parameters and configuration.
      */
@@ -294,6 +315,23 @@ class RedisCacheUtils
             ],
             $key
         );
+    }
+
+    /**
+     * Check if a route is whitelisted.
+     *
+     * @param string $path
+     * @return bool
+     */
+    public static function isWhitelisted(string $path): bool
+    {
+        $whitelist = config('redis_advanced_cache.whitelists', []);
+        if (!($whitelist['enabled'] ?? false)) return false;
+
+        foreach ($whitelist['routes'] ?? [] as $pattern) {
+            if (RedisCacheUtils::matchPattern($pattern, $path)) return true;
+        }
+        return false;
     }
 
     /**
