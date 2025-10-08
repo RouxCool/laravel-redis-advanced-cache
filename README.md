@@ -70,12 +70,7 @@ The configuration file allows you to control all aspects of caching. Example ``c
     ],
 
     // Listen to database write queries for automatic cache invalidation
-    'listen_queries' => [
-        'enabled' => env('REDIS_ADVANCED_CACHE_LISTEN_QUERIES', true),
-        'blacklists' => [
-            'update `users` set password = ...',
-        ],
-    ],
+    'listen_queries' => env('REDIS_ADVANCED_CACHE_LISTEN_QUERIES', true),
 
     // API-specific cache toggles
     'apis' => [

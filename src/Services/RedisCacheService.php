@@ -31,7 +31,7 @@ class RedisCacheService
         $this->scanCount = (int) config('redis_advanced_cache.options.cache_flush_scan_count', 300);
         $this->ttl = (int) config('redis_advanced_cache.options.ttl', 86400);
         $this->pattern = (int) config('redis_advanced_cache.pattern', 'default');
-        $this->listenEnabled = (int) config('redis_advanced_cache.listen_queries.enabled', true);
+        $this->listenEnabled = (int) config('redis_advanced_cache.listen_queries', true);
 
         $conn = config('redis_advanced_cache.connection');
         $this->host = $conn['host'] ?? '127.0.0.1';

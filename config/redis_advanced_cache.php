@@ -135,12 +135,7 @@ return [
     |
     */
 
-    'listen_queries' => [
-        'enabled' => env('REDIS_ADVANCED_CACHE_LISTEN_QUERIES', true),
-        'blacklists' => [
-            'update `users` set `last_authenticated_at` = ?, `users`.`updated_at` = ? where `id` = ?',
-        ],
-    ],
+    'listen_queries' => env('REDIS_ADVANCED_CACHE_LISTEN_QUERIES', true),
 
     /*
     |--------------------------------------------------------------------------
