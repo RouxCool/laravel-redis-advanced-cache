@@ -31,64 +31,62 @@ php artisan vendor:publish --tag=config --provider="RedisAdvancedCache\Providers
 
 The configuration file allows you to control all aspects of caching. Example ``config/redis_advanced_cache.php``:
 
-    return [
-        // Enable or disable Redis advanced cache globally
-        'enabled' => env('REDIS_ENABLED', true),
+    // Enable or disable Redis advanced cache globally
+    'enabled' => env('REDIS_ENABLED', true),
 
-        // Redis connection configuration
-        'connection' => [
-            'host' => env('REDIS_HOST', '127.0.0.1'),
-            'port' => env('REDIS_PORT', 6379),
-            'password' => env('REDIS_PASSWORD', null),
-            'database' => env('REDIS_DB', 1),
-            'scheme' => env('REDIS_ADVANCED_CACHE_SCHEME', 'tcp'),
+    // Redis connection configuration
+    'connection' => [
+        'host' => env('REDIS_HOST', '127.0.0.1'),
+        'port' => env('REDIS_PORT', 6379),
+        'password' => env('REDIS_PASSWORD', null),
+        'database' => env('REDIS_DB', 1),
+        'scheme' => env('REDIS_ADVANCED_CACHE_SCHEME', 'tcp'),
+    ],
+
+    // Cache key pattern
+    'pattern' => env('REDIS_ADVANCED_CACHE_PATTERN', 'default'),
+
+    // Key identifiers
+    'key_identifier' => [
+        'prefix' => env('REDIS_PREFIX', 'MyApp_local_'),
+        'name' => env('APP_NAME', 'myapp'),
+        'uuid' => env('APP_UUID', 'uuid'),
+    ],
+
+    // Route whitelists (always cacheable)
+    'whitelists' => [
+        'enabled' => env('REDIS_ADVANCED_CACHE_WHITELIST', false),
+        'routes' => [
+            '*',
         ],
+    ],
 
-        // Cache key pattern
-        'pattern' => env('REDIS_ADVANCED_CACHE_PATTERN', 'default'),
-
-        // Key identifiers
-        'key_identifier' => [
-            'prefix' => env('REDIS_PREFIX', 'MyApp_local_'),
-            'name' => env('APP_NAME', 'myapp'),
-            'uuid' => env('APP_UUID', 'uuid'),
+    // Route blacklists (never cacheable)
+    'blacklists' => [
+        'enabled' => env('REDIS_ADVANCED_CACHE_BLACKLIST', true),
+        'routes' => [
+            'api/auth/login',
         ],
+    ],
 
-        // Route whitelists (always cacheable)
-        'whitelists' => [
-            'enabled' => env('REDIS_ADVANCED_CACHE_WHITELIST', false),
-            'routes' => [
-                '*',
-            ],
-        ],
-
-        // Route blacklists (never cacheable)
+    // Listen to database write queries for automatic cache invalidation
+    'listen_queries' => [
+        'enabled' => env('REDIS_ADVANCED_CACHE_LISTEN_QUERIES', true),
         'blacklists' => [
-            'enabled' => env('REDIS_ADVANCED_CACHE_BLACKLIST', true),
-            'routes' => [
-                'api/auth/login',
-            ],
+            'update `users` set `last_authenticated_at` = ?, `users`.`updated_at` = ? where `id` = ?',
         ],
+    ],
 
-        // Listen to database write queries for automatic cache invalidation
-        'listen_queries' => [
-            'enabled' => env('REDIS_ADVANCED_CACHE_LISTEN_QUERIES', true),
-            'blacklists' => [
-                'update `users` set `last_authenticated_at` = ?, `users`.`updated_at` = ? where `id` = ?',
-            ],
-        ],
+    // API-specific cache toggles
+    'apis' => [
+        'orion'  => env('REDIS_ADVANCED_CACHE_API_ORION', true),
+        'rest'   => env('REDIS_ADVANCED_CACHE_API_REST', true),
+        'others' => env('REDIS_ADVANCED_CACHE_API_OTHERS', false),
+    ],
 
-        // API-specific cache toggles
-        'apis' => [
-            'orion'  => env('REDIS_ADVANCED_CACHE_API_ORION', true),
-            'rest'   => env('REDIS_ADVANCED_CACHE_API_REST', true),
-            'others' => env('REDIS_ADVANCED_CACHE_API_OTHERS', false),
-        ],
-
-        // Advanced cache options
-        'options' => [
-            'cache_authenticated_only' => env('REDIS_ADVANCED_CACHE_AUTH_ONLY', true),
-            'cache_flush_scan_count'   => env('REDIS_ADVANCED_CACHE_FLUSH_SCAN_COUNT', 300),
-            'ttl'                      => env('REDIS_ADVANCED_CACHE_TTL', 86400),
-        ],
-    ];
+    // Advanced cache options
+    'options' => [
+        'cache_authenticated_only' => env('REDIS_ADVANCED_CACHE_AUTH_ONLY', true),
+        'cache_flush_scan_count'   => env('REDIS_ADVANCED_CACHE_FLUSH_SCAN_COUNT', 300),
+        'ttl'                      => env('REDIS_ADVANCED_CACHE_TTL', 86400),
+    ],
