@@ -139,6 +139,33 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Cache Flush Options
+    |--------------------------------------------------------------------------
+    |
+    | This section defines how Redis should handle cache invalidation when
+    | detecting SQL joins. It allows fine-grained control over which table's
+    | cache should be flushed when a write operation affects joined tables.
+    |
+    | Options:
+    | - 'right_table' (bool) : Flush cache related to the right-hand table in a JOIN.
+    | - 'left_table'  (bool) : Flush cache related to the left-hand table in a JOIN.
+    | - 'on_left'     (bool) : Flush cache keys that match the left-hand column used in the JOIN.
+    | - 'on_right'    (bool) : Flush cache keys that match the right-hand column used in the JOIN.
+    |
+    | This enables precise cache invalidation for complex SQL queries involving
+    | multiple tables without flushing unrelated cache entries.
+    |
+    */
+
+    'flush' => [
+        'right_table' => env('REDIS_ADVANCED_CACHE_FLUSH_RIGHT_TABLE', true),
+        'left_table' => env('REDIS_ADVANCED_CACHE_FLUSH_LEFT_TABLE', false),
+        'on_left' => env('REDIS_ADVANCED_CACHE_FLUSH_ON_LEFT', false),
+        'on_right' => env('REDIS_ADVANCED_CACHE_FLUSH_ON_RIGHT', false),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | API Features
     |--------------------------------------------------------------------------
     |

@@ -118,7 +118,6 @@ class RedisCacheUtils
         foreach ($joins as $join) {
             $table = $join['right_table'];
 
-            // Skip system/technical tables
             if (preg_match('/_user$|^pivot|^model_has|^article_viewer|^media$/', $table)) {
                 continue;
             }
@@ -151,9 +150,9 @@ class RedisCacheUtils
                 'operation' => self::detectWriteOperation($sql),
                 'type' => strtoupper(trim($match[1])),
                 'right_table' => trim($match[2], '`[]"'),
+                'left_table' => explode('.', trim($match[3], '`[]"'))[0],
                 'on_left' => trim($match[3], '`[]"'),
                 'on_right' => trim($match[4], '`[]"'),
-                'left_table' => explode('.', trim($match[3], '`[]"'))[0],
             ];
         }
 
