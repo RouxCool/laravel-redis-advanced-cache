@@ -390,33 +390,48 @@ class RedisCacheUtils
      *
      * @throws \Exception If JSON encoding fails or invalid parameters are provided.
      */
-    public static function generateCacheKey(string $path, string $method, int|string|null $userId = null, array $postBody = [], array $queryInput = []): string
+    public static function generateCacheKey(array $params): string
     {
-        $pattern = config('redis_advanced_cache.pattern');
-        $identifier = config('redis_advanced_cache.key_identifier');
+        $pattern = config('redis_advanced_cache.pattern') ?: '@PREFIX:@UUID:@NAME:$PATH:$METHOD:$USER_ID:$BODY_INPUT:$QUERY_INPUT';
+        $identifier = config('redis_advanced_cache.key_identifier', []);
 
         if (!$pattern || $pattern === 'default') {
             $pattern = '@PREFIX:@UUID:@NAME:$PATH:$METHOD:$USER_ID:$BODY_INPUT:$QUERY_INPUT';
         }
+
+        $defaults = [
+            'path' => '-',
+            'method' => 'GET',
+            'user_id' => 'guest',
+            'body_input' => [],
+            'query_input' => [],
+            'extra' => [],
+        ];
+
+        $data = array_merge($defaults, $params);
+
         $key = str_replace(
             ['@PREFIX', '@UUID', '@NAME'],
-            [$identifier['prefix'] ?? 'cache_', $identifier['uuid'] ?? 'uuid', $identifier['name'] ?? 'myapp'],
+            [
+                $identifier['prefix'] ?? 'cache_',
+                $identifier['uuid'] ?? 'uuid',
+                $identifier['name'] ?? 'myapp',
+            ],
             $pattern
         );
 
         return str_replace(
             ['$PATH', '$METHOD', '$USER_ID', '$BODY_INPUT', '$QUERY_INPUT'],
             [
-                $path,
-                strtoupper($method),
-                $userId ?? 'guest',
-                !empty($postBody) ? md5(json_encode($postBody)) : '-',
-                !empty($queryInput) ? md5(http_build_query($queryInput)) : '-',
+                $data['path'],
+                strtoupper($data['method']),
+                $data['user_id'],
+                !empty($data['body_input']) ? md5(json_encode($data['body_input'])) : '-',
+                !empty($data['query_input']) ? md5(http_build_query($data['query_input'])) : '-',
             ],
             $key
         );
     }
-
 
     /**
      * Match a route path against a pattern.

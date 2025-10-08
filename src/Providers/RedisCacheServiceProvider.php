@@ -20,7 +20,6 @@ class RedisCacheServiceProvider extends ServiceProvider
     {
         $config = config('redis_advanced_cache');
 
-        // 🧩 Publication du fichier de config
         $this->publishes([
             __DIR__ . '/../../config/redis_advanced_cache.php' => config_path('redis_advanced_cache.php'),
         ], 'config');

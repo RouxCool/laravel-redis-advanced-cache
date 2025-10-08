@@ -77,8 +77,8 @@ class RedisCacheManager
             ? '@PREFIX:@UUID:@NAME:$PATH:$METHOD:$USER_ID:$BODY_INPUT:$QUERY_INPUT'
             : $this->pattern;
         $content['cache']['date_stored'] = Carbon::now()->toDateTimeString();
-        $content['cache']['key']['cache'] = $this->prefix.$keyCache;
-        $content['cache']['key']['localstorage'] = $this->prefix.$keyCache;
+        $content['cache']['key']['cache'] = $keyCache;
+        $content['cache']['key']['localstorage'] = md5($keyCache);
 
         $this->redis->setex($keyCache, $this->ttl, json_encode($content));
         $this->logDebug("[RedisCacheManager] ✅ Response cached successfully → $keyCache");
@@ -140,13 +140,13 @@ class RedisCacheManager
             $tablePath = RedisCacheUtils::resolveMainTable($request);
             if (!$tablePath) return $next($request);
 
-            $keyCache = RedisCacheUtils::generateCacheKey(
-                $tablePath,
-                $request->method(),
-                $this->userId,
-                $request->input(),
-                $request->query()
-            );
+            $keyCache = RedisCacheUtils::generateCacheKey([
+                'path' => $tablePath,
+                'method' => $request->method(),
+                'user_id' => $this->userId,
+                'body_input' => $request->input(),
+                'query_input' => $request->query(),
+            ]);
 
             $this->updateCacheKeys($request);
 
