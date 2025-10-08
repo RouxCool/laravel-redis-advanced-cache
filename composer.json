@@ -3,7 +3,6 @@
     "description": "Advanced Redis-based caching system for Laravel REST and Orion controllers.",
     "type": "library",
     "license": "MIT",
-    "version": "1.0.1",
     "autoload": {
         "psr-4": {
             "RedisAdvancedCache\\": "src/"
