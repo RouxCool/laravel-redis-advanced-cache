@@ -20,6 +20,12 @@ class RedisCacheManager
     protected array $whitelist;
     protected array $blacklist;
 
+    /**
+     * Class constructor.
+     *
+     * Initializes Redis cache configuration and establishes a connection
+     * using environment variables or configuration file values.
+     */
     public function __construct()
     {
         $this->enabled = (bool) config('redis_advanced_cache.enabled', true);
@@ -35,6 +41,15 @@ class RedisCacheManager
         $this->initRedis();
     }
 
+    /**
+     * Initialize a connection to the Redis server.
+     *
+     * Establishes a connection, authenticates (if required), and selects
+     * the appropriate database. If the connection fails, Redis is disabled.
+     *
+     * @throws \RedisException If Redis connection or authentication fails.
+     * @return void
+     */
     private function initRedis(): void
     {
         if (!$this->enabled) return;
@@ -57,7 +72,8 @@ class RedisCacheManager
             // Check blacklist first
             foreach ($this->blacklist as $pattern) {
                 if (RedisCacheUtils::matchPattern($pattern, $path)) {
-                    return $next($request); // route blacklisted, bypass cache
+                    \Log::info(1);
+                    return $next($request);
                 }
             }
 
@@ -65,6 +81,7 @@ class RedisCacheManager
             $forceCache = false;
             foreach ($this->whitelist as $pattern) {
                 if (RedisCacheUtils::matchPattern($pattern, $path)) {
+                    \Log::info(2);
                     $forceCache = true;
                     break;
                 }
@@ -84,18 +101,23 @@ class RedisCacheManager
             if ($forceCache) {
                 $cachable = true;
             }
+            \Log::info(3);
 
             if ($cachable && $tablePath = RedisCacheUtils::resolveMainTable($request)) {
+                \Log::info(4);
                 $noCache = $request->input('cache.noCache') ?? $request->query('noCache') ?? false;
+                \Log::info(4.1);
                 $updateCache = $request->input('cache.updateCache') ?? $request->query('updateCache') ?? false;
+                \Log::info(4.2);
 
-                $keyCache = RedisCacheService::generateCacheKey(
+                $keyCache = RedisCacheUtils::generateCacheKey(
                     $tablePath,
                     $request->method(),
                     $this->userId ?? null,
                     $request->input(),
                     $request->query()
                 );
+                \Log::info(4.3);
 
                 if ($updateCache && is_array($updateCache)) {
                     foreach ($updateCache as $updateCacheKey) {
@@ -104,6 +126,7 @@ class RedisCacheManager
                 }
 
                 if ($this->redis->exists($keyCache) && !$noCache) {
+                    \Log::info(5);
                     $cached = json_decode($this->redis->get($keyCache), true);
                     $cached['cache']['cached'] = true;
 
@@ -114,9 +137,11 @@ class RedisCacheManager
                 if ($response->getStatusCode() === 200) {
                     $content = json_decode($response->getContent(), true);
                     if ($content) {
+                        \Log::info(6);
                         $content['cache']['dateStored'] = Carbon::now()->toDateTimeString();
                         $content['cache']['pattern'] = config('redis_advanced_cache.pattern');
                         $content['cache']['key']['cache'] = $this->prefix.$keyCache;
+                        $content['cache']['key']['localstorage'] = $this->prefix.$keyCache;
 
                         $this->redis->setex($keyCache, $this->ttl, json_encode($content));
 

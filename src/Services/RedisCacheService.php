@@ -4,6 +4,7 @@ namespace RedisAdvancedCache\Services;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use RedisAdvancedCache\Utils\RedisCacheUtils;
 
 class RedisCacheService
 {
@@ -17,6 +18,12 @@ class RedisCacheService
     protected ?string $password;
     protected int $db;
 
+    /**
+     * Class constructor.
+     *
+     * Initializes Redis cache configuration and establishes a connection
+     * using environment variables or configuration file values.
+     */
     public function __construct()
     {
         $this->enabled = (bool) config('redis_advanced_cache.enabled', true);
@@ -34,6 +41,15 @@ class RedisCacheService
         $this->initRedis();
     }
 
+    /**
+     * Initialize a connection to the Redis server.
+     *
+     * Establishes a connection, authenticates (if required), and selects
+     * the appropriate database. If the connection fails, Redis is disabled.
+     *
+     * @throws \RedisException If Redis connection or authentication fails.
+     * @return void
+     */
     private function initRedis(): void
     {
         if (!$this->enabled) {
@@ -52,11 +68,27 @@ class RedisCacheService
         }
     }
 
+    /**
+     * Get the current Redis connection instance.
+     *
+     * @return \Redis|null The Redis connection instance or null if disabled/unavailable.
+     */
     public function getRedis(): ?\Redis
     {
         return $this->redis;
     }
 
+    /**
+     * Delete all Redis keys matching a given pattern.
+     *
+     * This method uses the SCAN command to progressively find and delete
+     * keys, avoiding blocking Redis. Only keys containing the given pattern
+     * will be removed.
+     *
+     * @param string $pattern The pattern to match (e.g. ':users:', ':articles:').
+     * @return void
+     * @throws \RedisException If Redis interaction fails.
+     */
     public function delete(string $pattern): void
     {
         if (!$this->enabled || !$this->redis) {
@@ -86,6 +118,58 @@ class RedisCacheService
         }
     }
 
+
+    /**
+     * Flush all Redis cache keys.
+     *
+     * When `$onlyPrefixed` is true, only keys beginning with the configured
+     * prefix will be deleted. Otherwise, all keys in the current Redis
+     * database are removed.
+     *
+     * @param bool $onlyPrefixed Whether to restrict deletion to keys starting with the configured prefix.
+     * @return void
+     * @throws \RedisException If Redis interaction fails.
+     */
+    public function flushAll(bool $onlyPrefixed = true): void
+    {
+        if (!$this->enabled || !$this->redis) {
+            return;
+        }
+
+        try {
+            $cursor = null;
+            $pattern = $onlyPrefixed ? "{$this->prefix}*" : "*";
+
+            do {
+                $response = $this->redis->scan($cursor, [
+                    'match' => $pattern,
+                    'count' => $this->scanCount,
+                ]);
+
+                if ($response === false) {
+                    break;
+                }
+
+                [$cursor, $keys] = $response;
+                if (!empty($keys)) {
+                    $this->redis->del($keys);
+                }
+            } while ($cursor !== 0 && $cursor !== null);
+        } catch (\Throwable $e) {
+            $this->redis = null;
+        }
+    }
+
+    /**
+     * Listen to database write operations and automatically invalidate
+     * related Redis cache entries.
+     *
+     * This method hooks into Laravel's DB::listen() and watches for
+     * INSERT, UPDATE, or DELETE queries. Detected tables are used to
+     * clear associated cache entries.
+     *
+     * @return void
+     */
     public function listenToWriteQueries(): void
     {
         if (!$this->enabled || !$this->redis) {
@@ -94,7 +178,7 @@ class RedisCacheService
 
         try {
             DB::listen(function ($query) {
-                if ($table = $this->getAffectedTables($query->sql)) {
+                if ($table = RedisCacheUtils::getAffectedTables($query->sql)) {
                     foreach ($table as $t) {
                         $this->delete(":$t:");
                     }
@@ -103,21 +187,5 @@ class RedisCacheService
         } catch (\Throwable $e) {
             $this->redis = null;
         }
-    }
-
-    private function getAffectedTables(string $sql): array
-    {
-        if (!($operation = \RedisAdvancedCache\Utils\RedisCacheUtils::detectWriteOperation($sql))) {
-            return [];
-        }
-
-        $relations = \RedisAdvancedCache\Utils\RedisCacheUtils::extractRelationsFromSQL($sql);
-        $mainTable = \RedisAdvancedCache\Utils\RedisCacheUtils::getMainTable($sql);
-
-        if ($mainTable) {
-            $relations[] = $mainTable;
-        }
-
-        return array_unique($relations);
     }
 }

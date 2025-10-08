@@ -320,11 +320,39 @@ class RedisCacheUtils
      * Match a route path against a pattern.
      * Supports wildcard '*' at the end of the pattern.
      */
-    private function matchPattern(string $pattern, string $path): bool
+    public static function matchPattern(string $pattern, string $path): bool
     {
         // Convert wildcard to regex
         $pattern = preg_quote($pattern, '/');
         $pattern = str_replace('\*', '.*', $pattern);
         return preg_match('/^'.$pattern.'$/', $path) === 1;
+    }
+
+    /**
+     * Extract affected table names from a SQL query string.
+     *
+     * Detects whether the SQL statement is a write operation (INSERT, UPDATE, DELETE)
+     * and extracts all tables that might be affected. These names are then
+     * used for cache invalidation.
+     *
+     * @param string $sql The SQL query to analyze.
+     * @return array<string> List of table names affected by the query.
+     */
+    public static function getAffectedTables(string $sql): array
+    {
+        $operation = self::detectWriteOperation($sql);
+
+        if (!$operation) {
+            return [];
+        }
+
+        $relations = self::extractRelationsFromSQL($sql);
+        $mainTable = self::getMainTable($sql);
+
+        if ($mainTable) {
+            $relations[] = $mainTable;
+        }
+
+        return array_unique($relations);
     }
 }
