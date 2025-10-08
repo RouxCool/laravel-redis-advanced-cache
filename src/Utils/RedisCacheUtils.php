@@ -32,6 +32,9 @@ class RedisCacheUtils
 
     /**
      * Determine if a REST API request is cacheable.
+     *
+     * @param Request $request The current HTTP request.
+     * @return bool True if the request can be cached, false otherwise.
      */
     public static function isCacheableRestApi(Request $request): bool
     {
@@ -42,7 +45,10 @@ class RedisCacheUtils
 
     /**
      * Check if a REST API request is a write operation.
-     * Only 'search' is considered a read operation here.
+     * Only 'search' is considered a read operation.
+     *
+     * @param Request $request The current HTTP request.
+     * @return bool True if the request is a write operation, false if read-only.
      */
     private static function isWriteOperationRestAPI(Request $request): bool
     {
@@ -55,6 +61,9 @@ class RedisCacheUtils
 
     /**
      * Check if the current route is managed by a REST controller.
+     *
+     * @param Request $request The current HTTP request.
+     * @return bool True if the controller is a REST controller, false otherwise.
      */
     public static function isRouteManagedByRestApi(Request $request): bool
     {
@@ -78,6 +87,9 @@ class RedisCacheUtils
 
     /**
      * Determine if an Orion API request is cacheable.
+     *
+     * @param Request $request The current HTTP request.
+     * @return bool True if the request can be cached, false otherwise.
      */
     public static function isCacheableOrion(Request $request): bool
     {
@@ -89,6 +101,9 @@ class RedisCacheUtils
     /**
      * Check if an Orion API request is a write operation.
      * 'index', 'search', and 'show' are considered read operations.
+     *
+     * @param Request $request The current HTTP request.
+     * @return bool True if the request is a write operation, false if read-only.
      */
     private static function isWriteOperationOrion(Request $request): bool
     {
@@ -101,6 +116,9 @@ class RedisCacheUtils
 
     /**
      * Check if the current route is managed by an Orion controller.
+     *
+     * @param Request $request The current HTTP request.
+     * @return bool True if the controller is an Orion controller, false otherwise.
      */
     public static function isRouteManagedByOrion(Request $request): bool
     {
@@ -126,6 +144,8 @@ class RedisCacheUtils
      * Extract related tables from a SQL query by analyzing JOIN clauses.
      *
      * @param string $sql
+     * 
+     * @return array<string> list of relations when extract SQL query
      */
     public static function extractRelationsFromSQL($sql): array
     {
