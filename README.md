@@ -79,6 +79,14 @@ The configuration file allows you to control all aspects of caching. Example ``c
         'others' => env('REDIS_ADVANCED_CACHE_API_OTHERS', false),
     ],
 
+    // Flush queries toggles
+    'flush' => [
+        'right_table' => env('REDIS_ADVANCED_CACHE_FLUSH_RIGHT_TABLE', true),
+        'left_table' => env('REDIS_ADVANCED_CACHE_FLUSH_LEFT_TABLE', false),
+        'on_left' => env('REDIS_ADVANCED_CACHE_FLUSH_ON_LEFT', false),
+        'on_right' => env('REDIS_ADVANCED_CACHE_FLUSH_ON_RIGHT', false),
+    ],
+
     // Advanced cache options
     'options' => [
         'cache_authenticated_only' => env('REDIS_ADVANCED_CACHE_AUTH_ONLY', true),
