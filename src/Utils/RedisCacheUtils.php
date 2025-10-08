@@ -283,6 +283,35 @@ class RedisCacheUtils
         return null;
     }
 
+    /**
+     * Extract affected table names from a SQL query string.
+     *
+     * Detects whether the SQL statement is a write operation (INSERT, UPDATE, DELETE)
+     * and extracts all tables that might be affected. These names are then
+     * used for cache invalidation.
+     *
+     * @param string $sql the SQL query to analyze
+     *
+     * @return array<string> list of table names affected by the query
+     */
+    public static function getAffectedTables(string $sql): array
+    {
+        $operation = self::detectWriteOperation($sql);
+
+        if (!$operation) {
+            return [];
+        }
+
+        $relations = self::extractRelationsFromSQL($sql);
+        $mainTable = self::getMainTable($sql);
+
+        if ($mainTable) {
+            $relations[] = $mainTable;
+        }
+
+        return array_unique($relations);
+    }
+
     // ================================
     // Whitelist/Blacklist
     // ================================
@@ -327,6 +356,19 @@ class RedisCacheUtils
 
     /**
      * Generate a unique cache key based on request parameters and configuration.
+     *
+     * The key is built using the configured pattern or a default pattern.
+     * Supports user identification, request path, HTTP method, POST body, and query parameters.
+     *
+     * @param string $path The request path (e.g., 'api/users').
+     * @param string $method The HTTP method (GET, POST, etc.).
+     * @param int|string|null $userId The ID of the authenticated user, or null for guests.
+     * @param array $postBody Optional POST body data to include in the key.
+     * @param array $queryInput Optional query parameters to include in the key.
+     *
+     * @return string Returns a unique string representing the cache key.
+     *
+     * @throws \Exception If JSON encoding fails or invalid parameters are provided.
      */
     public static function generateCacheKey(string $path, string $method, int|string|null $userId = null, array $postBody = [], array $queryInput = []): string
     {
@@ -355,9 +397,19 @@ class RedisCacheUtils
         );
     }
 
+
     /**
      * Match a route path against a pattern.
-     * Supports wildcard '*' at the end of the pattern.
+     *
+     * Supports wildcard '*' at the end of the pattern. Converts the pattern to a regex
+     * and tests it against the given path.
+     *
+     * @param string $pattern The route pattern to match (can include '*' wildcard).
+     * @param string $path The actual request path to test against the pattern.
+     *
+     * @return bool Returns true if the path matches the pattern, false otherwise.
+     *
+     * @throws \Exception If the pattern is invalid or regex compilation fails.
      */
     public static function matchPattern(string $pattern, string $path): bool
     {
@@ -365,34 +417,5 @@ class RedisCacheUtils
         $pattern = str_replace('\*', '.*', $pattern);
 
         return preg_match('/^'.$pattern.'$/', $path) === 1;
-    }
-
-    /**
-     * Extract affected table names from a SQL query string.
-     *
-     * Detects whether the SQL statement is a write operation (INSERT, UPDATE, DELETE)
-     * and extracts all tables that might be affected. These names are then
-     * used for cache invalidation.
-     *
-     * @param string $sql the SQL query to analyze
-     *
-     * @return array<string> list of table names affected by the query
-     */
-    public static function getAffectedTables(string $sql): array
-    {
-        $operation = self::detectWriteOperation($sql);
-
-        if (!$operation) {
-            return [];
-        }
-
-        $relations = self::extractRelationsFromSQL($sql);
-        $mainTable = self::getMainTable($sql);
-
-        if ($mainTable) {
-            $relations[] = $mainTable;
-        }
-
-        return array_unique($relations);
     }
 }
