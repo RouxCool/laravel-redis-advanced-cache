@@ -134,11 +134,43 @@ class RedisCacheUtils
     }
 
     /**
+     * Parse JOIN clauses from a SQL query and return flushable tables
+     * based on the configuration options: right_table, left_table, on_left, on_right.
+     *
+     * @param string $sql The SQL query to analyze.
+     * @return array<string> List of tables or columns that should be flushed.
+     */
+    public static function getFlushableTablesFromSql(string $sql): array
+    {
+        $joins = self::parseJoinsFromSql($sql);
+        $flushConfig = config('redis_advanced_cache.flush', []);
+        $flushables = [];
+
+        foreach ($joins as $join) {
+            if (($flushConfig['right_table'] ?? false) && !empty($join['right_table'])) {
+                $flushables[] = $join['right_table'];
+            }
+            if (($flushConfig['left_table'] ?? false) && !empty($join['left_table'])) {
+                $flushables[] = $join['left_table'];
+            }
+            if (($flushConfig['on_left'] ?? false) && !empty($join['on_left'])) {
+                $flushables[] = $join['on_left'];
+            }
+            if (($flushConfig['on_right'] ?? false) && !empty($join['on_right'])) {
+                $flushables[] = $join['on_right'];
+            }
+        }
+
+        return array_unique($flushables);
+    }
+
+    /**
      * Parse JOIN clauses from a SQL query.
      *
-     * @param string $sql
+     * @param string $sql The SQL query to analyze.
+     * @return array<int, array<string, string>> Each join contains keys: operation, type, right_table, left_table, on_left, on_right
      */
-    public static function parseJoinsFromSql($sql): array
+    public static function parseJoinsFromSql(string $sql): array
     {
         $pattern = '/(JOIN|LEFT\s+JOIN|RIGHT\s+JOIN|INNER\s+JOIN|OUTER\s+JOIN)\s+([`"\[\]\w.-]+)\s+ON\s+([`"\[\]\w.-]+)\s*=\s*([`"\[\]\w.-]+)/ix';
 
@@ -147,12 +179,12 @@ class RedisCacheUtils
         $results = [];
         foreach ($matches as $match) {
             $results[] = [
-                'operation' => self::detectWriteOperation($sql),
-                'type' => strtoupper(trim($match[1])),
+                'operation'   => self::detectWriteOperation($sql),
+                'type'        => strtoupper(trim($match[1])),
                 'right_table' => trim($match[2], '`[]"'),
-                'left_table' => explode('.', trim($match[3], '`[]"'))[0],
-                'on_left' => trim($match[3], '`[]"'),
-                'on_right' => trim($match[4], '`[]"'),
+                'left_table'  => explode('.', trim($match[3], '`[]"'))[0],
+                'on_left'     => trim($match[3], '`[]"'),
+                'on_right'    => trim($match[4], '`[]"'),
             ];
         }
 
@@ -169,11 +201,9 @@ class RedisCacheUtils
         if (stripos($sql, 'insert') === 0) {
             return 'INSERT';
         }
-
         if (stripos($sql, 'update') === 0) {
             return 'UPDATE';
         }
-
         if (stripos($sql, 'delete') === 0) {
             return 'DELETE';
         }
@@ -191,11 +221,9 @@ class RedisCacheUtils
         if (preg_match('/^insert\s+into\s+[`"]?(\w+)[`"]?/i', $sql, $matches)) {
             return $matches[1];
         }
-
         if (preg_match('/^update\s+[`"]?(\w+)[`"]?/i', $sql, $matches)) {
             return $matches[1];
         }
-
         if (preg_match('/^delete\s+from\s+[`"]?(\w+)[`"]?/i', $sql, $matches)) {
             return $matches[1];
         }
@@ -272,7 +300,6 @@ class RedisCacheUtils
      */
     public static function matchPattern(string $pattern, string $path): bool
     {
-        // Convert wildcard to regex
         $pattern = preg_quote($pattern, '/');
         $pattern = str_replace('\*', '.*', $pattern);
 

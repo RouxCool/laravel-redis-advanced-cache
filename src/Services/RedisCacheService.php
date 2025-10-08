@@ -175,9 +175,10 @@ class RedisCacheService
 
         try {
             DB::listen(function ($query) {
-                if ($table = RedisCacheUtils::getAffectedTables($query->sql)) {
-                    foreach ($table as $t) {
-                        $this->delete(":$t:");
+                if ($operation = RedisCacheUtils::detectWriteOperation($query->sql)) {
+                    $flushables = RedisCacheUtils::getFlushableTablesFromSql($query->sql);
+                    foreach ($flushables as $flushKey) {
+                        $this->delete(":$flushKey:");
                     }
                 }
             });
