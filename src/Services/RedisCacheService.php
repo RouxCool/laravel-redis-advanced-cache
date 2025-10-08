@@ -21,7 +21,7 @@ class RedisCacheService
     protected bool $listenEnabled;
 
     /**
-     * Class constructor.
+     * RedisCacheService constructor.
      *
      * Initializes Redis cache configuration and establishes a connection
      * using environment variables or configuration file values.

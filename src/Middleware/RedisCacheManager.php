@@ -23,6 +23,9 @@ class RedisCacheManager
     /**
      * RedisCacheManager constructor.
      *
+     * Initializes Redis cache configuration and establishes a connection
+     * using environment variables or configuration file values.
+     *
      * @param RedisCacheService $cacheService
      */
     public function __construct(RedisCacheService $cacheService)
@@ -31,8 +34,9 @@ class RedisCacheManager
         $this->debug = (bool) config('redis_advanced_cache.debug', false);
 
         if ($this->debug) {
-            \Log::debug('========================================');
-            \Log::debug('           RedisCacheManager');
+            \Log::debug('=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=');
+            \Log::debug('');
+            \Log::debug('         [Redis Advanced Cache]');
             \Log::debug('');
         }
 
