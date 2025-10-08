@@ -10,6 +10,7 @@ class RedisCacheService
 {
     protected ?\Illuminate\Contracts\Redis\Factory $redis = null;
     protected string $prefix;
+    protected bool $debug;
     protected bool $enabled;
     protected int $scanCount;
     protected int $ttl;
@@ -27,6 +28,7 @@ class RedisCacheService
     public function __construct()
     {
         $this->enabled = (bool) config('redis_advanced_cache.enabled', true);
+        $this->debug = (bool) config('redis_advanced_cache.debug', false);
         $this->prefix = config('redis_advanced_cache.key_identifier.prefix', 'cache_');
         $this->scanCount = (int) config('redis_advanced_cache.options.cache_flush_scan_count', 300);
         $this->ttl = (int) config('redis_advanced_cache.options.ttl', 86400);
@@ -53,6 +55,7 @@ class RedisCacheService
     private function initRedis(): void
     {
         if (!$this->enabled) {
+            if ($this->debug) \Log::info('[RedisCacheService] Redis cache is disabled.');
             return;
         }
 
@@ -63,8 +66,11 @@ class RedisCacheService
                 $this->redis->auth($this->password);
             }
             $this->redis->select($this->db);
+
+            if ($this->debug) \Log::info('[RedisCacheService] Redis connection established successfully.');
         } catch (\Throwable $e) {
             $this->redis = null;
+            if ($this->debug) \Log::error('[RedisCacheService] Redis connection failed: '.$e->getMessage());
         }
     }
 

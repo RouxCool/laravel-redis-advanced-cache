@@ -12,6 +12,7 @@ class RedisCacheManager
 {
     protected ?\Illuminate\Contracts\Redis\Factory $redis = null;
     protected bool $enabled;
+    protected bool $debug;
     protected string $prefix;
     protected string $appName;
     protected string $appUuid;
@@ -20,15 +21,10 @@ class RedisCacheManager
     protected array $whitelist;
     protected array $blacklist;
 
-    /**
-     * Class constructor.
-     *
-     * Initializes Redis cache configuration and establishes a connection
-     * using environment variables or configuration file values.
-     */
     public function __construct()
     {
         $this->enabled = (bool) config('redis_advanced_cache.enabled', true);
+        $this->debug = (bool) config('redis_advanced_cache.debug', false);
         $this->prefix = config('redis_advanced_cache.key.identifier.prefix', 'cache_');
         $this->appName = config('redis_advanced_cache.key.identifier.name', 'myapp');
         $this->appUuid = config('redis_advanced_cache.key.identifier.uuid', 'uuid');
@@ -41,57 +37,50 @@ class RedisCacheManager
         $this->initRedis();
     }
 
-    /**
-     * Initialize a connection to the Redis server.
-     *
-     * Establishes a connection, authenticates (if required), and selects
-     * the appropriate database. If the connection fails, Redis is disabled.
-     *
-     * @throws \RedisException if Redis connection or authentication fails
-     */
     private function initRedis(): void
     {
         if (!$this->enabled) {
+            if ($this->debug) \Log::info('[RedisCacheManager] Redis cache is disabled.');
             return;
         }
 
         try {
             $this->redis = Cache::store('redis')->getRedis();
             $this->redis->select((int) config('redis_advanced_cache.connection.database', 1));
+
+            if ($this->debug) \Log::info('[RedisCacheManager] Redis connection established successfully.');
         } catch (\Throwable $e) {
             $this->redis = null;
+            if ($this->debug) \Log::error('[RedisCacheManager] Redis connection failed: '.$e->getMessage());
         }
     }
 
-    /**
-     * Handle the request and apply caching logic.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function handle(Request $request, \Closure $next)
     {
         if (!$this->enabled || !$this->redis) {
+            if ($this->debug) \Log::info('[RedisCacheManager] Skipping cache for request '.$request->path());
             return $next($request);
         }
 
         try {
             $path = $request->path();
 
+            // Check blacklist
             if (($this->blacklist['enabled'] ?? false) && !empty($this->blacklist['routes'])) {
                 foreach ($this->blacklist['routes'] as $pattern) {
                     if (RedisCacheUtils::matchPattern($pattern, $path)) {
-                        \Log::info('RedisCacheManager: Route blacklisted → '.$path);
-
+                        if ($this->debug) \Log::info('[RedisCacheManager] Route blacklisted → '.$path);
                         return $next($request);
                     }
                 }
             }
 
+            // Check whitelist
             $forceCache = false;
             if (($this->whitelist['enabled'] ?? false) && !empty($this->whitelist['routes'])) {
                 foreach ($this->whitelist['routes'] as $pattern) {
                     if (RedisCacheUtils::matchPattern($pattern, $path)) {
-                        \Log::info('RedisCacheManager: Route whitelisted → '.$path);
+                        if ($this->debug) \Log::info('[RedisCacheManager] Route whitelisted → '.$path);
                         $forceCache = true;
                         break;
                     }
@@ -103,12 +92,15 @@ class RedisCacheManager
 
             if (RedisCacheUtils::isRouteManagedByRestApi($request)) {
                 $cachable = RedisCacheUtils::isCacheableRestApi($request);
+                if ($this->debug) \Log::info('[RedisCacheManager] Route managed by REST API → cachable='.$cachable);
             } elseif (RedisCacheUtils::isRouteManagedByOrion($request)) {
                 $cachable = RedisCacheUtils::isCacheableOrion($request);
+                if ($this->debug) \Log::info('[RedisCacheManager] Route managed by Orion API → cachable='.$cachable);
             }
 
             if ($forceCache) {
                 $cachable = true;
+                if ($this->debug) \Log::info('[RedisCacheManager] Force caching enabled for route → '.$path);
             }
 
             if ($cachable && $tablePath = RedisCacheUtils::resolveMainTable($request)) {
@@ -126,12 +118,14 @@ class RedisCacheManager
                 if ($updateCache && is_array($updateCache)) {
                     foreach ($updateCache as $updateCacheKey) {
                         (new RedisCacheService())->delete(':'.$updateCacheKey.':');
+                        if ($this->debug) \Log::info('[RedisCacheManager] Cache updated for key → '.$updateCacheKey);
                     }
                 }
 
                 if ($this->redis->exists($keyCache) && !$noCache) {
                     $cached = json_decode($this->redis->get($keyCache), true);
                     $cached['cache']['cached'] = true;
+                    if ($this->debug) \Log::info('[RedisCacheManager] Returning cached response → '.$keyCache);
 
                     return response()->json($cached);
                 }
@@ -147,6 +141,8 @@ class RedisCacheManager
 
                         $this->redis->setex($keyCache, $this->ttl, json_encode($content));
 
+                        if ($this->debug) \Log::info('[RedisCacheManager] Response cached successfully → '.$keyCache);
+
                         return response()->json($content);
                     }
                 }
@@ -154,8 +150,7 @@ class RedisCacheManager
                 return $response;
             }
         } catch (\Throwable $e) {
-            // silently fail
-            \Log::error('RedisCacheManager error: '.$e->getMessage());
+            if ($this->debug) \Log::error('[RedisCacheManager] Error handling cache for request '.$request->path().' → '.$e->getMessage());
         }
 
         return $next($request);
