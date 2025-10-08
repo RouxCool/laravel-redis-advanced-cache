@@ -19,6 +19,7 @@ class RedisCacheService
     protected ?string $password;
     protected int $db;
     protected bool $listenEnabled;
+    private static ?self $instance = null;
 
     /**
      * RedisCacheService constructor.
@@ -62,7 +63,7 @@ class RedisCacheService
 
         try {
             $this->redis = new \Redis();
-            $this->redis->connect($this->host, $this->port);
+            $this->redis->pconnect($this->host, $this->port);
             if ($this->password) $this->redis->auth($this->password);
             $this->redis->select($this->db);
 
@@ -71,6 +72,23 @@ class RedisCacheService
             $this->redis = null;
             if ($this->debug) \Log::error('[RedisCacheService] ❌ Redis connection failed: '.$e->getMessage());
         }
+    }
+
+    /**
+     * Get the singleton instance of the RedisCacheService.
+     *
+     * Ensures that only one instance of the service exists throughout the application
+     * lifecycle. If the instance does not exist yet, it will be created automatically.
+     *
+     * @return self Returns the unique instance of the RedisCacheService.
+     */
+    public static function getInstance(): self
+    {
+        if (self::$instance === null) {
+            self::$instance = new self();
+        }
+
+        return self::$instance;
     }
 
     /**

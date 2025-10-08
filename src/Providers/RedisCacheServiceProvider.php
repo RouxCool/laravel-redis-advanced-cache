@@ -12,27 +12,31 @@ class RedisCacheServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__ . '/../../config/redis_advanced_cache.php', 'redis_advanced_cache');
 
         $this->app->singleton('RedisCache', function () {
-            return new RedisCacheService();
+            return RedisCacheService::getInstance();
         });
     }
 
     public function boot(): void
     {
+        $config = config('redis_advanced_cache');
+
+        // 🧩 Publication du fichier de config
         $this->publishes([
             __DIR__ . '/../../config/redis_advanced_cache.php' => config_path('redis_advanced_cache.php'),
         ], 'config');
 
-        if (config('redis_advanced_cache.debug')) {
+        if (!empty($config['debug'])) {
             \Log::info('=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=');
             \Log::info('');
             \Log::info('         [Redis Advanced Cache]');
             \Log::info('');
         }
 
-        if (config('redis_advanced_cache.enabled') && config('redis_advanced_cache.listen_queries')) {
+        if (!empty($config['enabled']) && !empty($config['listen_queries'])) {
             try {
                 app('RedisCache')->listenToWriteQueries();
             } catch (\Throwable $e) {
+                \Log::error('[RedisCacheServiceProvider] ❌ Failed to start query listener: ' . $e->getMessage());
                 report($e);
             }
         }
