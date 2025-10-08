@@ -27,6 +27,9 @@ class RedisCacheManager
      */
     public function __construct(RedisCacheService $cacheService)
     {
+        $this->enabled = (bool) config('redis_advanced_cache.enabled', true);
+        $this->debug = (bool) config('redis_advanced_cache.debug', false);
+
         if ($this->debug) {
             \Log::debug('========================================');
             \Log::debug('           RedisCacheManager');
@@ -35,8 +38,6 @@ class RedisCacheManager
 
         $this->cacheService = $cacheService;
         $this->redis = $this->cacheService->getRedis();
-        $this->enabled = (bool) config('redis_advanced_cache.enabled', true);
-        $this->debug = (bool) config('redis_advanced_cache.debug', false);
         $this->prefix = config('redis_advanced_cache.key_identifier.prefix', 'cache_');
         $this->pattern = config('redis_advanced_cache.pattern', 'default');
         $this->ttl = (int) config('redis_advanced_cache.options.ttl', 86400);

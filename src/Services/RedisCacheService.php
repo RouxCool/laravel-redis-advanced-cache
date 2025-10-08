@@ -63,9 +63,7 @@ class RedisCacheService
         try {
             $this->redis = new \Redis();
             $this->redis->connect($this->host, $this->port);
-            if ($this->password) {
-                $this->redis->auth($this->password);
-            }
+            if ($this->password) $this->redis->auth($this->password);
             $this->redis->select($this->db);
 
             if ($this->debug) \Log::debug('[RedisCacheService] ✅ Redis connection established successfully.');
