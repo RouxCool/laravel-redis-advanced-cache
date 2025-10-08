@@ -147,7 +147,6 @@ class RedisCacheManager
                 'body_input' => $request->input(),
                 'query_input' => $request->query(),
             ]);
-            \Log::info("key : " . $keyCache);
 
             $this->updateCacheKeys($request);
 
