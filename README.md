@@ -31,7 +31,6 @@ php artisan vendor:publish --tag=config --provider="RedisAdvancedCache\Providers
 
 The configuration file allows you to control all aspects of caching. Example ``config/redis_advanced_cache.php``:
 
-``
 return [
     // Enable or disable Redis advanced cache globally
     'enabled' => env('REDIS_ENABLED', true),
@@ -93,4 +92,3 @@ return [
         'ttl'                      => env('REDIS_ADVANCED_CACHE_TTL', 86400),
     ],
 ];
-``
