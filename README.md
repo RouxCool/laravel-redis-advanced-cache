@@ -73,7 +73,7 @@ The configuration file allows you to control all aspects of caching. Example ``c
     'listen_queries' => [
         'enabled' => env('REDIS_ADVANCED_CACHE_LISTEN_QUERIES', true),
         'blacklists' => [
-            'update `users` ...',
+            'update `users` set password',
         ],
     ],
 
