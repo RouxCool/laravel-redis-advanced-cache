@@ -9,7 +9,7 @@ use Orion\Http\Controllers\Controller as OrionBaseController;
 
 class RedisCacheUtils
 {
-    protected $defaultPattern = '@PREFIX:@UUID:@NAME:$PATH:$METHOD:$USER_ID:$BODY_INPUT:$QUERY_INPUT';
+    protected static string $defaultPattern = '@PREFIX:@UUID:@NAME:$PATH:$METHOD:$USER_ID:$BODY_INPUT:$QUERY_INPUT';
 
     /**
      * Determine if the request is cacheable.
@@ -394,7 +394,9 @@ class RedisCacheUtils
      */
     public static function generateCacheKey(array $params): string
     {
-        $pattern = config('redis_advanced_cache.pattern') === 'default' ? $defaultPattern : config('redis_advanced_cache.pattern');
+        $pattern = config('redis_advanced_cache.pattern') === 'default'
+            ? self::$defaultPattern
+            : config('redis_advanced_cache.pattern');
         $identifier = config('redis_advanced_cache.key_identifier', []);
         $data = array_merge($params, $identifier);
 
