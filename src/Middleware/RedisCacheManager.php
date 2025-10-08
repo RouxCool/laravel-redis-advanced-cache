@@ -47,12 +47,13 @@ class RedisCacheManager
      * Establishes a connection, authenticates (if required), and selects
      * the appropriate database. If the connection fails, Redis is disabled.
      *
-     * @throws \RedisException If Redis connection or authentication fails.
-     * @return void
+     * @throws \RedisException if Redis connection or authentication fails
      */
     private function initRedis(): void
     {
-        if (!$this->enabled) return;
+        if (!$this->enabled) {
+            return;
+        }
 
         try {
             $this->redis = Cache::store('redis')->getRedis();
@@ -65,8 +66,6 @@ class RedisCacheManager
     /**
      * Handle the request and apply caching logic.
      *
-     * @param \Illuminate\Http\Request $request
-     * @param \Closure $next
      * @return \Illuminate\Http\Response
      */
     public function handle(Request $request, \Closure $next)
@@ -81,7 +80,8 @@ class RedisCacheManager
             if (($this->blacklist['enabled'] ?? false) && !empty($this->blacklist['routes'])) {
                 foreach ($this->blacklist['routes'] as $pattern) {
                     if (RedisCacheUtils::matchPattern($pattern, $path)) {
-                        \Log::info('RedisCacheManager: Route blacklisted → ' . $path);
+                        \Log::info('RedisCacheManager: Route blacklisted → '.$path);
+
                         return $next($request);
                     }
                 }
@@ -91,7 +91,7 @@ class RedisCacheManager
             if (($this->whitelist['enabled'] ?? false) && !empty($this->whitelist['routes'])) {
                 foreach ($this->whitelist['routes'] as $pattern) {
                     if (RedisCacheUtils::matchPattern($pattern, $path)) {
-                        \Log::info('RedisCacheManager: Route whitelisted → ' . $path);
+                        \Log::info('RedisCacheManager: Route whitelisted → '.$path);
                         $forceCache = true;
                         break;
                     }
@@ -125,7 +125,7 @@ class RedisCacheManager
 
                 if ($updateCache && is_array($updateCache)) {
                     foreach ($updateCache as $updateCacheKey) {
-                        (new RedisCacheService())->delete(':' . $updateCacheKey . ':');
+                        (new RedisCacheService())->delete(':'.$updateCacheKey.':');
                     }
                 }
 
@@ -142,8 +142,8 @@ class RedisCacheManager
                     if ($content) {
                         $content['cache']['dateStored'] = Carbon::now()->toDateTimeString();
                         $content['cache']['pattern'] = config('redis_advanced_cache.pattern');
-                        $content['cache']['key']['cache'] = $this->prefix . $keyCache;
-                        $content['cache']['key']['localstorage'] = $this->prefix . $keyCache;
+                        $content['cache']['key']['cache'] = $this->prefix.$keyCache;
+                        $content['cache']['key']['localstorage'] = $this->prefix.$keyCache;
 
                         $this->redis->setex($keyCache, $this->ttl, json_encode($content));
 
@@ -153,10 +153,9 @@ class RedisCacheManager
 
                 return $response;
             }
-
         } catch (\Throwable $e) {
             // silently fail
-            \Log::error('RedisCacheManager error: ' . $e->getMessage());
+            \Log::error('RedisCacheManager error: '.$e->getMessage());
         }
 
         return $next($request);
