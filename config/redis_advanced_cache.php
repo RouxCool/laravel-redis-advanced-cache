@@ -1,7 +1,6 @@
 <?php
 
 return [
-
     /*
     |--------------------------------------------------------------------------
     | Redis Advanced Cache Enable
@@ -13,7 +12,7 @@ return [
     |
     */
 
-    'enabled' => env('REDIS_ADVANCED_CACHE_ENABLED', true),
+    'enabled' => env('REDIS_ENABLED', true),
 
     /*
     |--------------------------------------------------------------------------
@@ -26,10 +25,10 @@ return [
     */
 
     'connection' => [
-        'host' => env('REDIS_ADVANCED_CACHE_HOST', '127.0.0.1'),
-        'port' => env('REDIS_ADVANCED_CACHE_PORT', 6379),
-        'password' => env('REDIS_ADVANCED_CACHE_PASSWORD', null),
-        'database' => env('REDIS_ADVANCED_CACHE_DB', 0),
+        'host' => env('REDIS_HOST', '127.0.0.1'),
+        'port' => env('REDIS_PORT', 6379),
+        'password' => env('REDIS_PASSWORD', 'null'),
+        'database' => env('REDIS_DB', 1),
         'scheme' => env('REDIS_ADVANCED_CACHE_SCHEME', 'tcp'),
     ],
 
@@ -79,9 +78,50 @@ return [
     */
 
     'key_identifier' => [
-        'prefix' => env('REDIS_ADVANCED_CACHE_KEY_PREFIX', 'cache_'),
-        'name' => env('REDIS_ADVANCED_CACHE_APP_NAME', 'myapp'),
-        'uuid' => env('REDIS_ADVANCED_CACHE_APP_UUID', 'uuid'),
+        'prefix' => env('REDIS_PREFIX', 'XefiApp_local_'),
+        'name' => env('APP_NAME', '-'),
+        'uuid' => env('APP_UUID', '-'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Route Caching Rules
+    |--------------------------------------------------------------------------
+    |
+    | This section defines fine-grained control over which routes can be
+    | cached or excluded from caching.
+    |
+    | You can explicitly allow (whitelist) or exclude (blacklist) specific
+    | routes or route patterns using wildcards (*).
+    |
+    | - Whitelisted routes will always be considered cacheable, even if other
+    |   cache rules would normally exclude them.
+    |
+    | - Blacklisted routes will never be cached, regardless of other rules.
+    |
+    | Notes:
+    |   • You can use '*' to match all routes (e.g., to enable global caching).
+    |   • If a route matches both the whitelist and the blacklist, the blacklist
+    |     always takes precedence.
+    |
+    | Examples:
+    |   'api/v1/public/*'   → allows or excludes all sub-routes under /api/v1/public/
+    |   'api/v1/admin/*'    → targets all admin routes
+    |   'api/v1/secret'     → targets a specific endpoint only
+    |
+    */
+
+    'whitelists' => [
+        'enabled' => env('REDIS_ADVANCED_CACHE_WHITELIST', false),
+        'routes' => [
+            '*',
+        ],
+    ],
+    'blacklists' => [
+        'enabled' => env('REDIS_ADVANCED_CACHE_BLACKLIST', true),
+        'routes' => [
+            'api/auth/login',
+        ],
     ],
 
     /*
@@ -95,7 +135,12 @@ return [
     |
     */
 
-    'listen_queries' => env('REDIS_ADVANCED_CACHE_LISTEN_QUERIES', true),
+    'listen_queries' => [
+        'enabled' => env('REDIS_ADVANCED_CACHE_LISTEN_QUERIES', true),
+        'blacklists' => [
+            'update `users` set `last_authenticated_at` = ?, `users`.`updated_at` = ? where `id` = ?',
+        ],
+    ],
 
     /*
     |--------------------------------------------------------------------------
@@ -127,7 +172,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | This section allows you to configure additional cache behaviors.
-    | 
+    |
     | - 'cache_authenticated_only': if true, only cache requests for authenticated users.
     |   Requests from guests or unauthenticated sessions will bypass the cache.
     |   Default: true. Controlled via environment variable REDIS_ADVANCED_CACHE_AUTH_ONLY.
@@ -144,5 +189,4 @@ return [
         'cache_flush_scan_count' => env('REDIS_ADVANCED_CACHE_FLUSH_SCAN_COUNT', 300),
         'ttl' => env('REDIS_ADVANCED_CACHE_TTL', 86400),
     ],
-
 ];
