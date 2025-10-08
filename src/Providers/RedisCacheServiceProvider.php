@@ -22,6 +22,13 @@ class RedisCacheServiceProvider extends ServiceProvider
             __DIR__ . '/../../config/redis_advanced_cache.php' => config_path('redis_advanced_cache.php'),
         ], 'config');
 
+        if (config('redis_advanced_cache.debug')) {
+            \Log::info('=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=');
+            \Log::info('');
+            \Log::info('         [Redis Advanced Cache]');
+            \Log::info('');
+        }
+
         if (config('redis_advanced_cache.enabled') && config('redis_advanced_cache.listen_queries')) {
             try {
                 app('RedisCache')->listenToWriteQueries();

@@ -32,14 +32,6 @@ class RedisCacheManager
     {
         $this->enabled = (bool) config('redis_advanced_cache.enabled', true);
         $this->debug = (bool) config('redis_advanced_cache.debug', false);
-
-        if ($this->debug) {
-            $this->logDebug('=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=');
-            $this->logDebug('');
-            $this->logDebug('         [Redis Advanced Cache]');
-            $this->logDebug('');
-        }
-
         $this->cacheService = $cacheService;
         $this->redis = $this->cacheService->getRedis();
         $this->prefix = config('redis_advanced_cache.key_identifier.prefix', 'cache_');
