@@ -4,13 +4,12 @@ namespace RedisAdvancedCache\Middleware;
 
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use RedisAdvancedCache\Services\RedisCacheService;
 use RedisAdvancedCache\Utils\RedisCacheUtils;
 
 class RedisCacheManager
 {
-    protected ?\Illuminate\Contracts\Redis\Factory $redis = null;
+    protected ?\Redis $redis = null;
     protected bool $enabled;
     protected bool $debug;
     protected string $prefix;
@@ -25,38 +24,27 @@ class RedisCacheManager
     {
         $this->enabled = (bool) config('redis_advanced_cache.enabled', true);
         $this->debug = (bool) config('redis_advanced_cache.debug', false);
-        $this->prefix = config('redis_advanced_cache.key.identifier.prefix', 'cache_');
-        $this->appName = config('redis_advanced_cache.key.identifier.name', 'myapp');
-        $this->appUuid = config('redis_advanced_cache.key.identifier.uuid', 'uuid');
+        $this->prefix = config('redis_advanced_cache.key_identifier.prefix', 'cache_');
+        $this->appName = config('redis_advanced_cache.key_identifier.name', 'myapp');
+        $this->appUuid = config('redis_advanced_cache.key_identifier.uuid', 'uuid');
         $this->ttl = (int) config('redis_advanced_cache.options.ttl', 86400);
         $this->userId = auth()->check() ? auth()->id() : 'guest';
 
         $this->whitelist = config('redis_advanced_cache.whitelists', []);
         $this->blacklist = config('redis_advanced_cache.blacklists', []);
+
         if ($this->debug) {
             \Log::info('========================================');
             \Log::info('           RedisCacheManager');
             \Log::info('');
         }
 
-        $this->initRedis();
-    }
+        $this->redis = (new RedisCacheService())->getRedis();
 
-    private function initRedis(): void
-    {
-        if (!$this->enabled) {
-            if ($this->debug) \Log::info('[RedisCacheManager] Redis cache is disabled.');
-            return;
-        }
-
-        try {
-            $this->redis = Cache::store('redis')->getRedis();
-            $this->redis->select((int) config('redis_advanced_cache.connection.database', 1));
-
-            if ($this->debug) \Log::info('[RedisCacheManager] Redis connection established successfully.');
-        } catch (\Throwable $e) {
-            $this->redis = null;
-            if ($this->debug) \Log::error('[RedisCacheManager] Redis connection failed: '.$e->getMessage());
+        if ($this->redis && $this->debug) {
+            \Log::info('[RedisCacheManager] Redis connection retrieved from RedisCacheService.');
+        } elseif ($this->debug) {
+            \Log::warning('[RedisCacheManager] Redis instance unavailable (disabled or connection failed).');
         }
     }
 

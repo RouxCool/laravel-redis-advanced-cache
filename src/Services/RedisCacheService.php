@@ -8,7 +8,7 @@ use RedisAdvancedCache\Utils\RedisCacheUtils;
 
 class RedisCacheService
 {
-    protected ?\Illuminate\Contracts\Redis\Factory $redis = null;
+    protected ?\Redis $redis = null;
     protected string $prefix;
     protected bool $debug;
     protected bool $enabled;
