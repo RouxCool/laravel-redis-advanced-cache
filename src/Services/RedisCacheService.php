@@ -29,15 +29,15 @@ class RedisCacheService
      */
     public function __construct()
     {
-        $this->enabled = (bool) config('redis_advanced_cache.enabled', true);
-        $this->debug = (bool) config('redis_advanced_cache.debug', false);
-        $this->prefix = config('redis_advanced_cache.key_identifier.prefix', 'cache_');
-        $this->scanCount = (int) config('redis_advanced_cache.options.cache_flush_scan_count', 300);
-        $this->ttl = (int) config('redis_advanced_cache.options.ttl', 86400);
-        $this->pattern = config('redis_advanced_cache.pattern', 'default');
-        $this->listenEnabled = (bool) config('redis_advanced_cache.listen_queries', true);
+        $this->enabled = (bool) config('redis-advanced-cache.enabled', true);
+        $this->debug = (bool) config('redis-advanced-cache.debug', false);
+        $this->prefix = config('redis-advanced-cache.key_identifier.prefix', 'cache_');
+        $this->scanCount = (int) config('redis-advanced-cache.options.cache_flush_scan_count', 300);
+        $this->ttl = (int) config('redis-advanced-cache.options.ttl', 86400);
+        $this->pattern = config('redis-advanced-cache.pattern', 'default');
+        $this->listenEnabled = (bool) config('redis-advanced-cache.listen_queries', true);
 
-        $conn = config('redis_advanced_cache.connection');
+        $conn = config('redis-advanced-cache.connection');
         $this->host = $conn['host'] ?? '127.0.0.1';
         $this->port = $conn['port'] ?? 6379;
         $this->password = $conn['password'] ?? null;

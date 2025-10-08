@@ -40,11 +40,11 @@ class RedisCacheUtils
      */
     public static function isCacheableRestApi(Request $request): bool
     {
-        $cacheAuthenticatedOnly = config('redis_advanced_cache.options.cache_authenticated_only', true);
+        $cacheAuthenticatedOnly = config('redis-advanced-cache.options.cache_authenticated_only', true);
         if ($cacheAuthenticatedOnly) {
-            return auth()->check() && !self::isWriteOperationRestAPI($request) && config('redis_advanced_cache.apis.rest');
+            return auth()->check() && !self::isWriteOperationRestAPI($request) && config('redis-advanced-cache.apis.rest');
         } else {
-            return !self::isWriteOperationRestAPI($request) && config('redis_advanced_cache.apis.rest');
+            return !self::isWriteOperationRestAPI($request) && config('redis-advanced-cache.apis.rest');
         }
     }
 
@@ -98,11 +98,11 @@ class RedisCacheUtils
      */
     public static function isCacheableOrion(Request $request): bool
     {
-        $cacheAuthenticatedOnly = config('redis_advanced_cache.options.cache_authenticated_only', true);
+        $cacheAuthenticatedOnly = config('redis-advanced-cache.options.cache_authenticated_only', true);
         if ($cacheAuthenticatedOnly) {
-            return auth()->check() && !self::isWriteOperationOrion($request) && config('redis_advanced_cache.apis.orion');
+            return auth()->check() && !self::isWriteOperationOrion($request) && config('redis-advanced-cache.apis.orion');
         } else {
-            return !self::isWriteOperationOrion($request) && config('redis_advanced_cache.apis.orion');
+            return !self::isWriteOperationOrion($request) && config('redis-advanced-cache.apis.orion');
         }
     }
 
@@ -189,7 +189,7 @@ class RedisCacheUtils
     public static function getFlushableTablesFromSql(string $sql): array
     {
         $joins = self::parseJoinsFromSql($sql);
-        $flushConfig = config('redis_advanced_cache.flush', []);
+        $flushConfig = config('redis-advanced-cache.flush', []);
         $flushables = [];
 
         foreach ($joins as $join) {
@@ -352,7 +352,7 @@ class RedisCacheUtils
      */
     public static function isWhitelisted(string $path): bool
     {
-        $whitelist = config('redis_advanced_cache.whitelists', []);
+        $whitelist = config('redis-advanced-cache.whitelists', []);
         if (!($whitelist['enabled'] ?? false)) return false;
 
         foreach ($whitelist['routes'] ?? [] as $pattern) {
@@ -369,7 +369,7 @@ class RedisCacheUtils
      */
     public static function isBlacklisted(string $path): bool
     {
-        $blacklist = config('redis_advanced_cache.blacklists', []);
+        $blacklist = config('redis-advanced-cache.blacklists', []);
         if (!($blacklist['enabled'] ?? false)) return false;
 
         foreach ($blacklist['routes'] ?? [] as $pattern) {
@@ -400,8 +400,8 @@ class RedisCacheUtils
      */
     public static function generateCacheKey(array $params): string
     {
-        $pattern = config('redis_advanced_cache.pattern') !== 'default' ?: self::$defaultPattern;
-        $identifier = config('redis_advanced_cache.key_identifier', []);
+        $pattern = config('redis-advanced-cache.pattern') !== 'default' ?: self::$defaultPattern;
+        $identifier = config('redis-advanced-cache.key_identifier', []);
         $data = array_merge($params, $identifier);
 
         $key = preg_replace_callback('/[@$](\w+)/', function ($matches) use ($data) {

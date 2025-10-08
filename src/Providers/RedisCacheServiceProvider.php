@@ -9,7 +9,7 @@ class RedisCacheServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->mergeConfigFrom(__DIR__ . '/../../config/redis_advanced_cache.php', 'redis_advanced_cache');
+        $this->mergeConfigFrom(__DIR__ . '/../../config/redis-advanced-cache.php', 'redis-advanced-cache');
 
         $this->app->singleton('RedisCache', function () {
             return RedisCacheService::getInstance();
@@ -18,10 +18,10 @@ class RedisCacheServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        $config = config('redis_advanced_cache');
+        $config = config('redis-advanced-cache');
 
         $this->publishes([
-            __DIR__ . '/../../config/redis_advanced_cache.php' => config_path('redis_advanced_cache.php'),
+            __DIR__ . '/../../config/redis-advanced-cache.php' => config_path('redis-advanced-cache.php'),
         ], 'config');
 
         if (!empty($config['debug'])) {

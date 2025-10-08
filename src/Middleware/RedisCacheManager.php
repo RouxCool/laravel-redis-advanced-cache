@@ -33,14 +33,14 @@ class RedisCacheManager
         $this->cacheService = RedisCacheService::getInstance();
         $this->redis = $this->cacheService->getRedis();
 
-        $this->enabled = (bool) config('redis_advanced_cache.enabled', true);
-        $this->debug = (bool) config('redis_advanced_cache.debug', false);
-        $this->prefix = config('redis_advanced_cache.key_identifier.prefix', 'cache_');
-        $this->pattern = config('redis_advanced_cache.pattern', 'default');
-        $this->ttl = (int) config('redis_advanced_cache.options.ttl', 86400);
+        $this->enabled = (bool) config('redis-advanced-cache.enabled', true);
+        $this->debug = (bool) config('redis-advanced-cache.debug', false);
+        $this->prefix = config('redis-advanced-cache.key_identifier.prefix', 'cache_');
+        $this->pattern = config('redis-advanced-cache.pattern', 'default');
+        $this->ttl = (int) config('redis-advanced-cache.options.ttl', 86400);
         $this->userId = auth()->check() ? auth()->id() : 'guest';
-        $this->whitelist = config('redis_advanced_cache.whitelists', []);
-        $this->blacklist = config('redis_advanced_cache.blacklists', []);
+        $this->whitelist = config('redis-advanced-cache.whitelists', []);
+        $this->blacklist = config('redis-advanced-cache.blacklists', []);
     }
 
     /**
