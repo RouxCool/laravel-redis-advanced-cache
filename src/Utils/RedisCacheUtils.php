@@ -238,20 +238,6 @@ class RedisCacheUtils
     }
 
     /**
-     * Filter out specific SQL queries that should not be cached.
-     *
-     * @param string $sql
-     */
-    public static function filterSQL($sql): bool
-    {
-        $filters = [
-            'update `users` set `last_authenticated_at` = ?, `users`.`updated_at` = ? where `id` = ?',
-        ];
-
-        return !in_array($sql, $filters);
-    }
-
-    /**
      * Generate a unique cache key based on request parameters and configuration.
      */
     public static function generateCacheKey(string $path, string $method, int|string|null $userId = null, array $postBody = [], array $queryInput = []): string
