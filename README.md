@@ -12,7 +12,7 @@ A Redis-based caching system for Laravel, designed to automatically cache API re
 - 🔹 **Unique & Isolated Cache Keys:** each key is generated using the prefix (XefiApp_local_), app name, UUID, request path, HTTP method, user ID, body, and query parameters — ensuring no collisions between environments.
 - 🔹 **Smart Route Handling:**
     - ✅ Whitelist → all routes (*) are eligible for caching.
-    - 🚫 Blacklist enabled → specific routes like api/auth/login are never cached.
+    - 🚫 Blacklist → specific routes like api/auth/login are never cached.
 - 🔹 **Automatic Cache Invalidation:** database write operations (INSERT, UPDATE, DELETE) automatically clear related cache entries.
 - 🔹 **Fine-Grained SQL Join Control:** when a JOIN query is detected, cache for the right-hand table is flushed automatically (flush.right_table=true).
 - 🔹 **Multi-API Compatibility:**
