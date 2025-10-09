@@ -259,7 +259,15 @@ class RedisCacheUtils
     }
 
     /**
-     * Extract the main table from a SQL query.
+     * Extracts the main table name from a raw SQL query.
+     *
+     * This method parses SQL statements such as INSERT, UPDATE, or DELETE to
+     * identify the target table. It ignores case and optional backticks/quotes.
+     *
+     * @param  string  $sql  The raw SQL query string to analyze.
+     * @return string|null   The name of the main table if found, or null if not detected.
+     *
+     * @throws \InvalidArgumentException  If the provided SQL string is empty or invalid.
      */
     public static function getMainTable(string $sql): ?string
     {
@@ -279,7 +287,29 @@ class RedisCacheUtils
     }
 
     /**
-     * Resolve the main table name from a Request based on its controller.
+     * Resolves the main database table name associated with the current request.
+     *
+     * This method determines the Eloquent model (and therefore the table name)
+     * linked to the controller handling the incoming request. It first checks
+     * explicit mappings defined in the configuration file
+     * (`controller_model_mapping`). If no mapping is found, it automatically
+     * infers the model name based on standard Laravel naming conventions.
+     *
+     * The resolution process follows this priority:
+     *   1. Use explicit controller → model mapping from configuration.
+     *   2. Infer model name by removing "Controller" and checking both singular
+     *      and plural variations inside:
+     *         - App\Models\
+     *         - App\Models\Api\
+     *
+     * If the model class exists and implements `getTable()`, the corresponding
+     * database table name will be returned.
+     *
+     * @param  \Illuminate\Http\Request  $request  The current HTTP request instance.
+     * @return string|null  The resolved main table name, or null if not found.
+     *
+     * @throws \ReflectionException  If reflection is used internally and fails
+     *                               to instantiate the model class.
      */
     public static function resolveMainTable(Request $request): ?string
     {
@@ -291,19 +321,41 @@ class RedisCacheUtils
 
         [$controller] = explode('@', $action);
         $controllerBaseName = class_basename($controller);
-        $modelNameBase = Str::replaceLast('Controller', '', $controllerBaseName);
 
+        $mapping = config('redis-advanced-cache.controller_model_mapping', []);
+        $modelMapping = $mapping[$controller] ?? $mapping[$controllerBaseName] ?? null;
+
+        if ($modelMapping) {
+            $modelClass = class_exists($modelMapping)
+                ? $modelMapping
+                : 'App\\Models\\' . ltrim($modelMapping, '\\');
+
+            if (class_exists($modelClass)) {
+                $model = new $modelClass();
+                if (method_exists($model, 'getTable')) {
+                    return $model->getTable();
+                }
+            }
+        }
+
+        $modelNameBase = Str::replaceLast('Controller', '', $controllerBaseName);
         $candidates = [
             Str::plural($modelNameBase),
             Str::singular($modelNameBase),
         ];
 
         foreach ($candidates as $modelName) {
-            $modelClass = 'App\\Models\\'.$modelName;
-            if (class_exists($modelClass)) {
-                $model = new $modelClass();
-                if (method_exists($model, 'getTable')) {
-                    return $model->getTable();
+            $possibleNamespaces = [
+                'App\\Models\\' . $modelName,
+                'App\\Models\\Api\\' . $modelName,
+            ];
+
+            foreach ($possibleNamespaces as $modelClass) {
+                if (class_exists($modelClass)) {
+                    $model = new $modelClass();
+                    if (method_exists($model, 'getTable')) {
+                        return $model->getTable();
+                    }
                 }
             }
         }

@@ -139,7 +139,7 @@ class RedisCacheManager
 
             $tablePath = RedisCacheUtils::resolveMainTable($request);
             if (!$tablePath) {
-                $this->logDebug("[RedisCacheManager] ❗ Resolve model not found  → $path");
+                $this->logDebug("[RedisCacheManager] ❗ Resolve model not found  → " . $request->route()?->getActionName());
                 return $next($request);
             }
 
