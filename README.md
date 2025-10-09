@@ -37,6 +37,11 @@ Route::middleware(RedisCacheManager::class)->group(function () {
 });
 ```
 
+or app/Http/Kernel.php
+```
+
+```
+
 ## 🧩 Configuration
 
 The configuration file allows you to control all aspects of caching. Example ``config/redis-advanced-cache.php``:
