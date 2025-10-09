@@ -48,14 +48,14 @@ or **app/Http/Kernel.php** file
 ## 🧩 Configuration
 
 The configuration file allows you to control all aspects of caching. Example ``config/redis-advanced-cache.php``:
-
-    // Enable or disable Redis advanced cache globally
+```
+    <!-- Enable or disable Redis advanced cache globally -->
     'enabled' => env('REDIS_ENABLED', true),
 
-    // Enable or disable debug mode (Laravel Log)
+    <!-- Enable or disable debug mode (Laravel Log) -->
     'debug' => env('REDIS_ADVANCED_CACHE_DEBUG', false),
 
-    // Redis connection configuration
+    <!-- Redis connection configuration -->
     'connection' => [
         'host' => env('REDIS_HOST', '127.0.0.1'),
         'port' => env('REDIS_PORT', 6379),
@@ -64,17 +64,17 @@ The configuration file allows you to control all aspects of caching. Example ``c
         'scheme' => env('REDIS_ADVANCED_CACHE_SCHEME', 'tcp'),
     ],
 
-    // Cache key pattern
+    <!-- Cache key pattern -->
     'pattern' => env('REDIS_ADVANCED_CACHE_PATTERN', 'default'),
 
-    // Key identifiers
+    <!-- Key identifiers -->
     'key_identifier' => [
         'prefix' => env('REDIS_PREFIX', 'MyApp_local_'),
         'name' => env('APP_NAME', 'myapp'),
         'uuid' => env('APP_UUID', 'uuid'),
     ],
 
-    // Route whitelists (always cacheable)
+    <!-- Route whitelists (always cacheable) -->
     'whitelists' => [
         'enabled' => env('REDIS_ADVANCED_CACHE_WHITELIST', false),
         'routes' => [
@@ -82,7 +82,7 @@ The configuration file allows you to control all aspects of caching. Example ``c
         ],
     ],
 
-    // Route blacklists (never cacheable)
+    <!-- Route blacklists (never cacheable) -->
     'blacklists' => [
         'enabled' => env('REDIS_ADVANCED_CACHE_BLACKLIST', true),
         'routes' => [
@@ -90,17 +90,17 @@ The configuration file allows you to control all aspects of caching. Example ``c
         ],
     ],
 
-    // Listen to database write queries for automatic cache invalidation
+    <!-- Listen to database write queries for automatic cache invalidation -->
     'listen_queries' => env('REDIS_ADVANCED_CACHE_LISTEN_QUERIES', true),
 
-    // API-specific cache toggles
+    <!-- API-specific cache toggles -->
     'apis' => [
         'orion'  => env('REDIS_ADVANCED_CACHE_API_ORION', true),
         'rest'   => env('REDIS_ADVANCED_CACHE_API_REST', true),
         'others' => env('REDIS_ADVANCED_CACHE_API_OTHERS', false),
     ],
 
-    // Flush queries toggles
+    <!-- Flush queries toggles -->
     'flush' => [
         'right_table' => env('REDIS_ADVANCED_CACHE_FLUSH_RIGHT_TABLE', true),
         'left_table' => env('REDIS_ADVANCED_CACHE_FLUSH_LEFT_TABLE', false),
@@ -108,9 +108,10 @@ The configuration file allows you to control all aspects of caching. Example ``c
         'on_right' => env('REDIS_ADVANCED_CACHE_FLUSH_ON_RIGHT', false),
     ],
 
-    // Advanced cache options
+    <!-- Advanced cache options -->
     'options' => [
         'cache_authenticated_only' => env('REDIS_ADVANCED_CACHE_AUTH_ONLY', true),
         'cache_flush_scan_count'   => env('REDIS_ADVANCED_CACHE_FLUSH_SCAN_COUNT', 300),
         'ttl'                      => env('REDIS_ADVANCED_CACHE_TTL', 86400),
     ],
+```
