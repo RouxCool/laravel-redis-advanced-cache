@@ -28,7 +28,7 @@ publish configuration :
 php artisan vendor:publish --tag=config --provider="RedisAdvancedCache\Providers\RedisCacheServiceProvider"
 ```
 
-api.php
+Link in **api.php** file
 ```
 use RedisAdvancedCache\Middleware\RedisCacheManager;
 
@@ -37,7 +37,7 @@ Route::middleware(RedisCacheManager::class)->group(function () {
 });
 ```
 
-or app/Http/Kernel.php
+or **app/Http/Kernel.php** file
 ```
 'api' => [
     // ...
