@@ -138,7 +138,10 @@ class RedisCacheManager
             if (!$cachable) return $next($request);
 
             $tablePath = RedisCacheUtils::resolveMainTable($request);
-            if (!$tablePath) return $next($request);
+            if (!$tablePath) {
+                $this->logDebug("[RedisCacheManager] ❗ Resolve model not found  → $path");
+                return $next($request);
+            }
 
             $keyCache = RedisCacheUtils::generateCacheKey([
                 'path' => $tablePath,

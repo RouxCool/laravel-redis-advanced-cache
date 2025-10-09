@@ -140,7 +140,7 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Controller to Model Mapping
+    | Controller to Model Mapping (Namespace)
     |--------------------------------------------------------------------------
     |
     | This configuration allows you to explicitly map controllers to their
@@ -148,28 +148,47 @@ return [
     | database table when caching responses, especially for complex or
     | non-standard controller naming conventions.
     |
-    | Example:
-    |   OrionUsersController  => User
-    |   CustomNameController        => User
-    |   AdminUserProfileController => UserProfile
+    | The resolver will first check this mapping. If no match is found, it
+    | will automatically attempt to infer the model name based on common
+    | Laravel naming conventions.
     |
-    | This ensures that cache keys are generated correctly based on the
-    | actual model/table associated with the controller, rather than relying
-    | solely on automatic naming conventions.
+    | ─────────────────────────────────────────────────────────────────────────
+    | 🔹 Automatic Resolution Rules
+    | ─────────────────────────────────────────────────────────────────────────
+    |
+    | The resolver automatically maps controllers to models if their names
+    | follow a standard pattern:
+    |
+    |   • UserController       → App\Models\User
+    |   • UsersController      → App\Models\User
+    |   • OrionOrdersController → App\Models\Order
+    |
+    | It simply removes the "Controller" suffix, then tries both the singular
+    | and plural forms of the name inside the following namespaces:
+    |
+    |   1. App\Models\<Model>
+    |   2. App\Models\Api\<Model>
+    |
+    | If the model class exists and has a getTable() method, its table name
+    | will be used as the main resource key for cache invalidation.
+    |
+    | ─────────────────────────────────────────────────────────────────────────
+    | 🔹 When to Use Manual Mapping
+    | ─────────────────────────────────────────────────────────────────────────
+    |
+    | You should define explicit mappings here when:
+    |   • The controller name does not match the model name (e.g., AdminUserController → User)
+    |   • The model resides in a custom namespace (e.g., App\Models\Api\User)
+    |   • You are using a non-standard naming scheme (e.g., V1UserCtrl → User)
+    |
+    | Example configuration:
+    |   'App\Http\Controllers\OrionUsersController' => 'App\Models\Api\User',
+    |   'App\Http\Controllers\AdminUserController'  => 'App\Models\User',
     |
     */
 
     'controller_model_mapping' => [
-        // Contrôleurs Orion
-        'App\Http\Controllers\OrionUsersController' => 'User',
-        'App\Http\Controllers\OrionOrdersController' => 'Order',
-
-        // Contrôleurs REST
-        'UserController' => 'User',
-        'OrderController' => 'Order',
-
-        // Contrôleurs Admin ou spécifiques
-        'AdminUserProfileController' => 'UserProfile',
+        'App\Http\Controllers\OrionUsersController' => 'App\Models\Api\User',
     ],
 
     /*
