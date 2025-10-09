@@ -17,12 +17,13 @@ A Redis-based caching system for Laravel, designed to automatically cache API re
 
 ## 📦 Installation
 
-Install the package via Composer:
+Install the package via Composer :
 
 ```bash
 composer require rouxcool/laravel-redis-advanced-cache
 ```
 
+publish configuration :
 ```
 php artisan vendor:publish --tag=config --provider="RedisAdvancedCache\Providers\RedisCacheServiceProvider"
 ```
