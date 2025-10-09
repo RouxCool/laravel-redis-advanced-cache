@@ -136,6 +136,12 @@ class RedisCacheManager
                 $this->logDebug("[RedisCacheManager] ✅ Route whitelisted → $path");
             }
 
+            if ($this->listenEnabled) {
+                $this->cacheService->listenToWriteQueries();
+            } else {
+                $this->logDebug("[RedisCacheManager] ❗ Write query listening is disabled.");
+            }
+
             $cachable = RedisCacheUtils::isCachable($request) || $forceCache;
             if (!$cachable) {
                 $this->logDebug("[RedisCacheManager] ❗ Route isn't cachable → " . $path);
@@ -146,12 +152,6 @@ class RedisCacheManager
             if (!$tablePath) {
                 $this->logDebug("[RedisCacheManager] ❗ Resolve model not found → " . $request->route()?->getActionName());
                 return $next($request);
-            }
-
-            if ($this->listenEnabled) {
-                $this->cacheService->listenToWriteQueries();
-            } else {
-                $this->logDebug("[RedisCacheManager] ❗ Write query listening is disabled.");
             }
 
             $keyCache = RedisCacheUtils::generateCacheKey([
