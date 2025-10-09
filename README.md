@@ -52,6 +52,9 @@ The configuration file allows you to control all aspects of caching. Example ``c
     // Enable or disable Redis advanced cache globally
     'enabled' => env('REDIS_ENABLED', true),
 
+    // Enable or disable debug mode (Laravel Log)
+    'debug' => env('REDIS_ADVANCED_CACHE_DEBUG', false),
+
     // Redis connection configuration
     'connection' => [
         'host' => env('REDIS_HOST', '127.0.0.1'),
