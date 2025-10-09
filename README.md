@@ -27,6 +27,15 @@ composer require rouxcool/laravel-redis-advanced-cache
 php artisan vendor:publish --tag=config --provider="RedisAdvancedCache\Providers\RedisCacheServiceProvider"
 ```
 
+api.php
+```
+use RedisAdvancedCache\Middleware\RedisCacheManager;
+
+Route::middleware(RedisCacheManager::class)->group(function () {
+    <!-- Routes -->
+});
+```
+
 ## 🧩 Configuration
 
 The configuration file allows you to control all aspects of caching. Example ``config/redis-advanced-cache.php``:
