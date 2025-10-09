@@ -16,9 +16,9 @@ A Redis-based caching system for Laravel, designed to automatically cache API re
 - 🔹 **Automatic Cache Invalidation:** database write operations (INSERT, UPDATE, DELETE) automatically clear related cache entries.
 - 🔹 **Fine-Grained SQL Join Control:** when a JOIN query is detected, cache for the right-hand table is flushed automatically (flush.right_table=true).
 - 🔹 **Multi-API Compatibility:**
-    Orion → ✅ enabled
-    REST → ✅ enabled
-    Other APIs → ❌ disabled
+    - Orion → ✅ enabled
+    - REST → ✅ enabled
+    - Other APIs → ❌ disabled
 - 🔹 **Authenticated Requests Only:** only authenticated users’ requests are cached (cache_authenticated_only=true).
 - 🔹 **Custom Cache Lifetime:** default TTL is set to 24 hours (86400 seconds).
 - 🔹**Performance-Tuned Flushing:** cache invalidation uses Redis SCAN in batches of 300 keys, balancing speed and memory efficiency.
