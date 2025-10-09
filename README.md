@@ -6,13 +6,13 @@ A Redis-based caching system for Laravel, designed to automatically cache API re
 
 ## 🚀 Features
 
--🔹 Global Redis Cache Enabled: the advanced cache system is enabled by default (REDIS_ENABLED=true) and automatically intercepts API requests.
--🔹 Debug Mode Support: detailed debugging can be toggled via REDIS_ADVANCED_CACHE_DEBUG=true.
--🔹 Custom Redis Connection: fully configurable host, port, password, database index, and scheme through environment variables.
+-🔹 **Global Redis Cache Enabled:** the advanced cache system is enabled by default (REDIS_ENABLED=true) and automatically intercepts API requests.
+-🔹 **Debug Mode Support:** detailed debugging can be toggled via REDIS_ADVANCED_CACHE_DEBUG=true.
+-🔹 **Custom Redis Connection:** fully configurable host, port, password, database index, and scheme through environment variables.
 -🔹 Unique & Isolated Cache Keys: each key is generated using the prefix (XefiApp_local_), app name, UUID, request path, HTTP method, user ID, body, and query parameters — ensuring no collisions between environments.
--🔹 Smart Route Handling:
-    ✅ Whitelist enabled → all routes (*) are eligible for caching.
-    🚫 Blacklist enabled → specific routes like api/auth/login are never cached.
+-🔹 **Smart Route Handling:**
+    - ✅ Whitelist enabled → all routes (*) are eligible for caching.
+    - 🚫 Blacklist enabled → specific routes like api/auth/login are never cached.
 -🔹 Automatic Cache Invalidation: database write operations (INSERT, UPDATE, DELETE) automatically clear related cache entries.
 -🔹 Fine-Grained SQL Join Control: when a JOIN query is detected, cache for the right-hand table is flushed automatically (flush.right_table=true).
 -🔹 Multi-API Compatibility:
