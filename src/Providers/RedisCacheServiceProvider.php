@@ -30,14 +30,5 @@ class RedisCacheServiceProvider extends ServiceProvider
             \Log::info('         [Redis Advanced Cache]');
             \Log::info('');
         }
-
-        if (!empty($config['enabled']) && !empty($config['listen_queries'])) {
-            try {
-                app('RedisCache')->listenToWriteQueries();
-            } catch (\Throwable $e) {
-                \Log::error('[RedisCacheServiceProvider] ❌ Failed to start query listener: ' . $e->getMessage());
-                report($e);
-            }
-        }
     }
 }

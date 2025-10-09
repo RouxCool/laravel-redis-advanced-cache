@@ -196,6 +196,7 @@ class RedisCacheService
         try {
             DB::listen(function ($query) {
                 if ($operation = RedisCacheUtils::detectWriteOperation($query->sql)) {
+                    \Log::info($operation);
                     $flushables = RedisCacheUtils::getFlushableTablesFromSql($query->sql);
                     $mainTable = RedisCacheUtils::getMainTable($query->sql);
                     if ($mainTable) {

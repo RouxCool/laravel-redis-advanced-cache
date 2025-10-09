@@ -13,6 +13,7 @@ class RedisCacheManager
     protected ?\Redis $redis;
     protected bool $enabled;
     protected bool $debug;
+    protected bool $listenEnabled;
     protected string $prefix;
     protected string $pattern;
     protected string|int $userId;
@@ -35,6 +36,7 @@ class RedisCacheManager
 
         $this->enabled = (bool) config('redis-advanced-cache.enabled', true);
         $this->debug = (bool) config('redis-advanced-cache.debug', false);
+        $this->listenEnabled = (bool) config('redis-advanced-cache.listen_queries', true);
         $this->prefix = config('redis-advanced-cache.key_identifier.prefix', 'cache_');
         $this->pattern = config('redis-advanced-cache.pattern', 'default');
         $this->ttl = (int) config('redis-advanced-cache.options.ttl', 86400);
@@ -142,8 +144,14 @@ class RedisCacheManager
 
             $tablePath = RedisCacheUtils::resolveMainTable($request);
             if (!$tablePath) {
-                $this->logDebug("[RedisCacheManager] ❗ Resolve model not found  → " . $request->route()?->getActionName());
+                $this->logDebug("[RedisCacheManager] ❗ Resolve model not found → " . $request->route()?->getActionName());
                 return $next($request);
+            }
+
+            if ($this->listenEnabled) {
+                $this->cacheService->listenToWriteQueries();
+            } else {
+                $this->logDebug("[RedisCacheManager] ❗ Write query listening is disabled.");
             }
 
             $keyCache = RedisCacheUtils::generateCacheKey([
