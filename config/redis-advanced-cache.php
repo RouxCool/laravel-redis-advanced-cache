@@ -140,6 +140,40 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Controller to Model Mapping
+    |--------------------------------------------------------------------------
+    |
+    | This configuration allows you to explicitly map controllers to their
+    | corresponding Eloquent models. This is useful for resolving the main
+    | database table when caching responses, especially for complex or
+    | non-standard controller naming conventions.
+    |
+    | Example:
+    |   OrionUsersController  => User
+    |   CustomNameController        => User
+    |   AdminUserProfileController => UserProfile
+    |
+    | This ensures that cache keys are generated correctly based on the
+    | actual model/table associated with the controller, rather than relying
+    | solely on automatic naming conventions.
+    |
+    */
+
+    'controller_model_mapping' => [
+        // Contrôleurs Orion
+        'App\Http\Controllers\OrionUsersController' => 'User',
+        'App\Http\Controllers\OrionOrdersController' => 'Order',
+
+        // Contrôleurs REST
+        'UserController' => 'User',
+        'OrderController' => 'Order',
+
+        // Contrôleurs Admin ou spécifiques
+        'AdminUserProfileController' => 'UserProfile',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Cache Flush Options
     |--------------------------------------------------------------------------
     |
