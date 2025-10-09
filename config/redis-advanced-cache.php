@@ -159,8 +159,8 @@ return [
     | The resolver automatically maps controllers to models if their names
     | follow a standard pattern:
     |
-    |   • UserController       → App\Models\User
-    |   • UsersController      → App\Models\User
+    |   • UserController        → App\Models\User
+    |   • UsersController       → App\Models\User
     |   • OrionOrdersController → App\Models\Order
     |
     | It simply removes the "Controller" suffix, then tries both the singular
@@ -188,7 +188,7 @@ return [
     */
 
     'controller_model_mapping' => [
-        'App\Http\Controllers\OrionUsersController' => 'App\Models\Api\User',
+        // 
     ],
 
     /*
