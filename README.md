@@ -21,7 +21,7 @@ A Redis-based caching system for Laravel, designed to automatically cache API re
     - Other APIs → ❌ disabled
 - 🔹 **Authenticated Requests Only:** only authenticated users’ requests are cached (cache_authenticated_only=true).
 - 🔹 **Custom Cache Lifetime:** default TTL is set to 24 hours (86400 seconds).
-- 🔹**Performance-Tuned Flushing:** cache invalidation uses Redis SCAN in batches of 300 keys, balancing speed and memory efficiency.
+- 🔹 **Performance-Tuned Flushing:** cache invalidation uses Redis SCAN in batches of 300 keys, balancing speed and memory efficiency.
 
 ---
 
