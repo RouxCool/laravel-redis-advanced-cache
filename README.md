@@ -39,10 +39,10 @@ Route::middleware(RedisCacheManager::class)->group(function () {
 
 or app/Http/Kernel.php
 ```
-    'api' => [
-        // ...
-        \RedisAdvancedCache\Middleware\RedisCacheManager::class,
-    ],
+'api' => [
+    // ...
+    \RedisAdvancedCache\Middleware\RedisCacheManager::class,
+],
 ```
 
 ## 🧩 Configuration
