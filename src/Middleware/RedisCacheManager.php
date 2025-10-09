@@ -135,7 +135,10 @@ class RedisCacheManager
             }
 
             $cachable = RedisCacheUtils::isCachable($request) || $forceCache;
-            if (!$cachable) return $next($request);
+            if (!$cachable) {
+                $this->logDebug("[RedisCacheManager] ❗ Route isn't cachable → " . $path);
+                return $next($request);
+            }
 
             $tablePath = RedisCacheUtils::resolveMainTable($request);
             if (!$tablePath) {
