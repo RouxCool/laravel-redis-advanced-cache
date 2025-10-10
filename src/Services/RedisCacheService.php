@@ -101,6 +101,40 @@ class RedisCacheService
     }
 
     /**
+     * Store a value in Redis with a given key and optional TTL.
+     *
+     * If the value n'est pas une chaîne, il sera automatiquement encodé en JSON.
+     * Si `$ttl` n'est pas fourni, la durée par défaut du cache sera utilisée.
+     *
+     * @param string $key
+     * @param mixed $value
+     * @param int|null $ttl
+     * @return bool True si l’écriture a réussi, false sinon.
+     */
+    public function set(string $key, mixed $value, ?int $ttl = null): bool
+    {
+        if (!$this->enabled || !$this->redis) {
+            if ($this->debug) \Log::warning('[RedisCacheService] ❗ Cannot set cache key — Redis disabled or disconnected.');
+            return false;
+        }
+
+        try {
+            $ttl ??= $this->ttl;
+            $storedValue = is_string($value) ? $value : json_encode($value);
+
+            $this->redis->setex($key, $ttl, $storedValue);
+
+            if ($this->debug) \Log::debug("[RedisCacheService] ✅ Set cache key: {$key} (TTL: {$ttl}s)");
+
+            return true;
+        } catch (\Throwable $e) {
+            $this->redis = null;
+            if ($this->debug) \Log::error("[RedisCacheService] ❌ Failed to set cache key {$key}: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
      * Delete all Redis keys matching a given pattern.
      *
      * This method uses the SCAN command to progressively find and delete

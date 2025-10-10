@@ -82,7 +82,8 @@ class RedisCacheManager
         $content['cache']['key']['cache'] = $keyCache;
         $content['cache']['key']['localstorage'] = md5($keyCache);
 
-        $this->redis->setex($keyCache, $this->ttl, json_encode($content));
+        // $this->redis->setex($keyCache, $this->ttl, json_encode($content));
+        $this->cacheService->set($keyCache, json_encode($content), $this->ttl);
         $this->logDebug("[RedisCacheManager] ✅ Response cached successfully → $keyCache");
     }
 
