@@ -107,6 +107,12 @@ Listen to database write queries for automatic cache invalidation/
 ```
 'listen_queries' => env('REDIS_ADVANCED_CACHE_LISTEN_QUERIES', true),
 ```
+Controller to Model Mapping
+```
+'controller_model_mapping' => [
+    'Namespace\Controllers' => 'Namespace\Models'
+],
+```
 API-specific cache toggles
 ```
 'apis' => [
