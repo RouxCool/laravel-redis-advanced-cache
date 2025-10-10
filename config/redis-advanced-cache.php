@@ -79,7 +79,7 @@ return [
     */
 
     'key_identifier' => [
-        'prefix' => env('REDIS_PREFIX', 'XefiApp_local_'),
+        'prefix' => env('REDIS_PREFIX', 'MyApp_local_'),
         'name' => env('APP_NAME', '-'),
         'uuid' => env('APP_UUID', '-'),
     ],

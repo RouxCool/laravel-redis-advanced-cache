@@ -58,9 +58,24 @@ or **app/Http/Kernel.php** file
 ],
 ```
 
-🧠 SDK Response When a Key Is Cached
+## 🧠 SDK Response When a Key Is Cached
 
 When the SDK performs a request and the response is stored in cache, it returns a JSON object containing both the request data and cache metadata.
+```
+{
+  "data": [
+    // ...
+  ],
+  "cache": {
+    "pattern": "@PREFIX:@UUID:@NAME:$PATH:$METHOD:$USER_ID:$BODY_INPUT:$QUERY_INPUT",
+    "date_stored": "2025-10-10 09:13:50",
+    "key": {
+        "cache": "MyApp_local_:-:Portail:users:POST:9d2af22a-749f-4486-99d5-9ff40651c0f4:ad31168f10a1b0eea70fdc893202366e:dd458db91733e6de79974ad7235ccac2",
+      "localstorage": "a99784671d053d496f6d6c6956d87189"
+    }
+  }
+}
+```
 
 ## 🧹 Cache Control — Disable & Flush
 
