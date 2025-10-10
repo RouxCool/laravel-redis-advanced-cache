@@ -158,7 +158,8 @@ Establish a connection:
     'scheme' => env('REDIS_ADVANCED_CACHE_SCHEME', 'tcp'),
 ],
 ```
-Define pattern cache:
+Define pattern cache: 
+Default pattern is ``@PREFIX:@UUID:@NAME:$PATH:$METHOD:$USER_ID:$BODY_INPUT:$QUERY_INPUT``
 ```
 'pattern' => env('REDIS_ADVANCED_CACHE_PATTERN', 'default'),
 ```
