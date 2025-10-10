@@ -158,12 +158,12 @@ Establish a connection:
     'scheme' => env('REDIS_ADVANCED_CACHE_SCHEME', 'tcp'),
 ],
 ```
-Define pattern cache: 
+Edit pattern cache: 
 _Default pattern is ``@PREFIX:@UUID:@NAME:$PATH:$METHOD:$USER_ID:$BODY_INPUT:$QUERY_INPUT``_
 ```
 'pattern' => env('REDIS_ADVANCED_CACHE_PATTERN', 'default'),
 ```
-Define static key identifier:
+Edit static key identifier:
 ```
 'key_identifier' => [
     'prefix' => env('REDIS_PREFIX', 'MyApp_local_'),
