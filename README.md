@@ -58,25 +58,6 @@ or **app/Http/Kernel.php** file
 ],
 ```
 
-## 🧠 SDK Response When a Key Is Cached
-
-When the SDK performs a request and the response is stored in cache, it returns a JSON object containing both the request data and cache metadata.
-```
-{
-  "data": [
-    // ...
-  ],
-  "cache": {
-    "pattern": "@PREFIX:@UUID:@NAME:$PATH:$METHOD:$USER_ID:$BODY_INPUT:$QUERY_INPUT",
-    "date_stored": "2025-10-10 09:13:50",
-    "key": {
-        "cache": "MyApp_local_:my_app_uuid:my_app_id:users:POST:9d2af22a-749f-4486-99d5-9ff40651c0f4:ad31168f10a1b0eea70fdc893202366e:dd458db91733e6de79974ad7235ccac2",
-      "localstorage": "a99784671d053d496f6d6c6956d87189"
-    }
-  }
-}
-```
-
 ## 🧹 Cache Control — Disable & Flush
 
 The Redis Advanced Cache system can be fully disabled or manually refreshed and flushed — directly from API queries, configuration, or Artisan commands.
@@ -116,12 +97,31 @@ https://website.com/api/users?updateCache=users,posts,services
 }
 ```
 
+## 🧠 SDK Response When a Key Is Cached
+
+When the SDK performs a request and the response is stored in cache, it returns a JSON object containing both the request data and cache metadata.
+```
+{
+  "data": [
+    // ...
+  ],
+  "cache": {
+    "pattern": "@PREFIX:@UUID:@NAME:$PATH:$METHOD:$USER_ID:$BODY_INPUT:$QUERY_INPUT",
+    "date_stored": "2025-10-10 09:13:50",
+    "key": {
+        "cache": "MyApp_local_:my_app_uuid:my_app_id:users:POST:9d2af22a-749f-4486-99d5-9ff40651c0f4:ad31168f10a1b0eea70fdc893202366e:dd458db91733e6de79974ad7235ccac2",
+      "localstorage": "a99784671d053d496f6d6c6956d87189"
+    }
+  }
+}
+```
+
 ## ⚙️ Manual Cache Control
 
 In addition to automatic API caching, the package also allows manual control of Redis cache entries via the RedisCacheService.
 This is particularly useful when you need to store, invalidate, or flush specific cache keys programmatically.
 
-🧠 Available Methods:
+# Available Methods:
 
 🔹 ``set(string $key, mixed $value, ?int $ttl = null): bool``
 Store a custom value in Redis with an optional TTL (time-to-live).
