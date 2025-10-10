@@ -6,6 +6,7 @@
     "version": "1.2.4",
     "minimum-stability": "dev",
     "prefer-stable": true,
+    "author": "RouxCool",
     "autoload": {
         "psr-4": {
             "RedisAdvancedCache\\": "src/"

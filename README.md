@@ -2,6 +2,7 @@
 
 A Redis-based caching system for Laravel, designed to automatically cache API responses, manage query invalidation, and prevent cache collisions between environments.
 
+Author : ``JORDAN Charly``
 ---
 
 ## 🚀 Features
