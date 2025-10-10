@@ -496,9 +496,20 @@ class RedisCacheUtils
      * @param string $message
      * @return void
      */
-    protected function logDebug(string $message): void
+    public static function logDebug(string $message): void
     {
-        if ($this->debug) \Log::debug($message);
+        if (config('redis-advanced-cache.debug', false)) \Log::debug($message);
+    }
+
+    /**
+     * Log a warning message if debug mode is enabled.
+     *
+     * @param string $message
+     * @return void
+     */
+    public static function logWarning(string $message): void
+    {
+        if (config('redis-advanced-cache.debug', false)) \Log::warning($message);
     }
 
     /**
@@ -507,8 +518,8 @@ class RedisCacheUtils
      * @param string $message
      * @return void
      */
-    protected function logError(string $message): void
+    public static function logError(string $message): void
     {
-        if ($this->debug) \Log::error($message);
+        if (config('redis-advanced-cache.debug', false)) \Log::error($message);
     }
 }

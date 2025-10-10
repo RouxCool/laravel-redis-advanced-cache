@@ -100,13 +100,13 @@ class RedisCacheManager
         $path = $request->path();
         RedisCacheUtils::logDebug('[RedisCacheManager] ❓ Route target : ' . $path);
         if (!$this->enabled || !$this->redis) {
-            RedisCacheUtils::logDebug('[RedisCacheManager] ❗ Skipping cache for '.$path);
+            RedisCacheUtils::logWarning('[RedisCacheManager] ❗ Skipping cache for '.$path);
             return $next($request);
         }
 
         try {
             if (RedisCacheUtils::isBlacklisted($path)) {
-                RedisCacheUtils::logDebug("[RedisCacheManager] ❗ Route blacklisted → $path");
+                RedisCacheUtils::logWarning("[RedisCacheManager] ❗ Route blacklisted → $path");
                 return $next($request);
             }
 
@@ -118,18 +118,18 @@ class RedisCacheManager
             if ($this->listenEnabled) {
                 $this->cacheService->listenToWriteQueries();
             } else {
-                RedisCacheUtils::logDebug("[RedisCacheManager] ❗ Write query listening is disabled.");
+                RedisCacheUtils::logWarning("[RedisCacheManager] ❗ Write query listening is disabled.");
             }
 
             $cachable = RedisCacheUtils::isCachable($request) || $forceCache;
             if (!$cachable) {
-                RedisCacheUtils::logDebug("[RedisCacheManager] ❗ Route isn't cachable → " . $path);
+                RedisCacheUtils::logWarning("[RedisCacheManager] ❗ Route isn't cachable → " . $path);
                 return $next($request);
             }
 
             $tablePath = RedisCacheUtils::resolveMainTable($request);
             if (!$tablePath) {
-                RedisCacheUtils::logDebug("[RedisCacheManager] ❗ Resolve model not found → " . $request->route()?->getActionName());
+                RedisCacheUtils::logWarning("[RedisCacheManager] ❗ Resolve model not found → " . $request->route()?->getActionName());
                 return $next($request);
             }
 

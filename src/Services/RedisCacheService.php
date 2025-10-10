@@ -56,7 +56,7 @@ class RedisCacheService
     private function initRedis(): void
     {
         if (!$this->enabled) {
-            if ($this->debug) RedisCacheUtils::logDebug('[RedisCacheService] ❗ Redis cache is disabled.');
+            RedisCacheUtils::logWarning('[RedisCacheService] ❗ Redis cache is disabled.');
             return;
         }
 
@@ -66,10 +66,10 @@ class RedisCacheService
             if ($this->password) $this->redis->auth($this->password);
             $this->redis->select($this->db);
 
-            if ($this->debug) RedisCacheUtils::logDebug('[RedisCacheService] ✅ Redis connection established successfully.');
+            RedisCacheUtils::logDebug('[RedisCacheService] ✅ Redis connection established successfully.');
         } catch (\Throwable $e) {
             $this->redis = null;
-            if ($this->debug) RedisCacheUtils::logError('[RedisCacheService] ❌ Redis connection failed: '.$e->getMessage());
+            RedisCacheUtils::logError('[RedisCacheService] ❌ Redis connection failed: '.$e->getMessage());
         }
     }
 
@@ -114,7 +114,7 @@ class RedisCacheService
     public function set(string $key, mixed $value, ?int $ttl = null): bool
     {
         if (!$this->enabled || !$this->redis) {
-            if ($this->debug) \Log::warning('[RedisCacheService] ❗ Cannot set cache key — Redis disabled or disconnected.');
+            RedisCacheUtils::logWarning('[RedisCacheService] ❗ Cannot set cache key — Redis disabled or disconnected.');
             return false;
         }
 
@@ -124,12 +124,12 @@ class RedisCacheService
 
             $this->redis->setex($key, $ttl, $storedValue);
 
-            if ($this->debug) RedisCacheUtils::logDebug("[RedisCacheService] ✅ Set cache key: {$key} (TTL: {$ttl}s)");
+            RedisCacheUtils::logDebug("[RedisCacheService] ✅ Set cache key: {$key} (TTL: {$ttl}s)");
 
             return true;
         } catch (\Throwable $e) {
             $this->redis = null;
-            if ($this->debug) RedisCacheUtils::logError("[RedisCacheService] ❌ Failed to set cache key {$key}: " . $e->getMessage());
+            RedisCacheUtils::logError("[RedisCacheService] ❌ Failed to set cache key {$key}: " . $e->getMessage());
             return false;
         }
     }
@@ -148,7 +148,7 @@ class RedisCacheService
     public function delete(string $pattern): void
     {
         if (!$this->enabled || !$this->redis) {
-            if ($this->debug) \Log::warning('[RedisCacheService] ❗ Write query listening is disabled or disconnected.');
+            RedisCacheUtils::logWarning('[RedisCacheService] ❗ Write query listening is disabled or disconnected.');
             return;
         }
 
@@ -163,12 +163,12 @@ class RedisCacheService
 
                 if (!empty($results)) {
                     $this->redis->del($results);
-                    if ($this->debug) RedisCacheUtils::logDebug('[RedisCacheService] ✅ Deleted cache keys: ' . implode(', ', $results));
+                    RedisCacheUtils::logDebug('[RedisCacheService] ✅ Deleted cache keys: ' . implode(', ', $results));
                 }
             } while ($cursor !== 0 && $cursor !== null);
         } catch (\Throwable $e) {
             $this->redis = null;
-            if ($this->debug) RedisCacheUtils::logError('[RedisCacheService] ❌ Error deleting keys with pattern ' . $pattern . ': ' . $e->getMessage());
+            RedisCacheUtils::logError('[RedisCacheService] ❌ Error deleting keys with pattern ' . $pattern . ': ' . $e->getMessage());
         }
     }
 
@@ -186,7 +186,7 @@ class RedisCacheService
     public function flushAll(bool $onlyPrefixed = true): void
     {
         if (!$this->enabled || !$this->redis) {
-            if ($this->debug) \Log::warning('[RedisCacheService] ❗ Write query listening is disabled or disconnected.');
+            RedisCacheUtils::logWarning('[RedisCacheService] ❗ Write query listening is disabled or disconnected.');
             return;
         }
 
@@ -201,14 +201,14 @@ class RedisCacheService
 
                 if (!empty($keys)) {
                     $this->redis->del($keys);
-                    if ($this->debug) RedisCacheUtils::logDebug('[RedisCacheService] ✅ Flushed cache keys: ' . implode(', ', $keys));
+                    RedisCacheUtils::logDebug('[RedisCacheService] ✅ Flushed cache keys: ' . implode(', ', $keys));
                 }
             } while ($cursor !== 0 && $cursor !== null);
 
-            if ($this->debug) RedisCacheUtils::logDebug('[RedisCacheService] 🧹 Redis cache flush completed for pattern: ' . $pattern);
+            RedisCacheUtils::logDebug('[RedisCacheService] 🧹 Redis cache flush completed for pattern: ' . $pattern);
         } catch (\Throwable $e) {
             $this->redis = null;
-            if ($this->debug) RedisCacheUtils::logError('[RedisCacheService] ❌ Error flushing Redis cache: ' . $e->getMessage());
+            RedisCacheUtils::logError('[RedisCacheService] ❌ Error flushing Redis cache: ' . $e->getMessage());
         }
     }
 
@@ -223,7 +223,7 @@ class RedisCacheService
     public function listenToWriteQueries(): void
     {
         if (!$this->enabled || !$this->redis || !$this->listenEnabled) {
-            if ($this->debug) \Log::warning('[RedisCacheService] ❗ Write query listening is disabled or disconnected.');
+            RedisCacheUtils::logWarning('[RedisCacheService] ❗ Write query listening is disabled or disconnected.');
             return;
         }
 
@@ -234,19 +234,19 @@ class RedisCacheService
                     $mainTable = RedisCacheUtils::getMainTable($query->sql);
                     if ($mainTable) {
                         $this->delete(":$mainTable:");
-                        if ($this->debug) RedisCacheUtils::logDebug('[RedisCacheService] ✅ Cache invalidated main table key: *:'.$mainTable.':*');
+                        RedisCacheUtils::logDebug('[RedisCacheService] ✅ Cache invalidated main table key: *:'.$mainTable.':*');
                     }
                     foreach ($flushables as $flushKey) {
                         $this->delete(":$flushKey:");
-                        if ($this->debug) RedisCacheUtils::logDebug('[RedisCacheService] ✅ Cache invalidated relations keys: *:'.$flushKey.':*');
+                        RedisCacheUtils::logDebug('[RedisCacheService] ✅ Cache invalidated relations keys: *:'.$flushKey.':*');
                     }
                 }
             });
 
-            if ($this->debug) RedisCacheUtils::logDebug('[RedisCacheService] ❓ Listening to database write queries for cache invalidation.');
+            RedisCacheUtils::logDebug('[RedisCacheService] ❓ Listening to database write queries for cache invalidation.');
         } catch (\Throwable $e) {
             $this->redis = null;
-            if ($this->debug) RedisCacheUtils::logError('[RedisCacheService] ❌ Error listening to write queries: '.$e->getMessage());
+            RedisCacheUtils::logError('[RedisCacheService] ❌ Error listening to write queries: '.$e->getMessage());
         }
     }
 }
