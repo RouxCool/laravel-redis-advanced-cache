@@ -5,7 +5,7 @@ A Redis-based caching system for Laravel, designed to automatically cache API re
 Author : ``JORDAN Charly``
 ---
 
-## 🚀 Features
+# 🚀 Features
 
 - 🔹 **Global Redis Cache Enabled:** the advanced cache system is enabled by default (REDIS_ENABLED=true) and automatically intercepts API requests.
 - 🔹 **Debug Mode Support:** detailed debugging can be toggled via REDIS_ADVANCED_CACHE_DEBUG=true.
@@ -28,7 +28,7 @@ Author : ``JORDAN Charly``
 
 ---
 
-## 📦 Installation
+# 📦 Installation
 
 Install the package via Composer :
 
@@ -58,7 +58,7 @@ or **app/Http/Kernel.php** file
 ],
 ```
 
-## 🧹 Cache Control — Disable & Flush
+# 🧹 Cache Control — Disable & Flush
 
 The Redis Advanced Cache system can be fully disabled or manually refreshed and flushed — directly from API queries, configuration, or Artisan commands.
 
@@ -75,7 +75,7 @@ https://website.com/api/users?noCache=1
 }
 ```
 
-## ♻️ Force Cache Refresh for Specific Keys
+# ♻️ Force Cache Refresh for Specific Keys
 
 You can force Redis to refresh specific cache entries using the updateCache parameter.
 This is useful when you want to invalidate a subset of cached routes without flushing everything.
@@ -97,7 +97,7 @@ https://website.com/api/users?updateCache=users,posts,services
 }
 ```
 
-## 🧠 SDK Response When a Key Is Cached
+# 🧠 SDK Response When a Key Is Cached
 
 When the SDK performs a request and the response is stored in cache, it returns a JSON object containing both the request data and cache metadata.
 ```
@@ -116,12 +116,12 @@ When the SDK performs a request and the response is stored in cache, it returns 
 }
 ```
 
-## ⚙️ Manual Cache Control
+# ⚙️ Manual Cache Control
 
 In addition to automatic API caching, the package also allows manual control of Redis cache entries via the RedisCacheService.
 This is particularly useful when you need to store, invalidate, or flush specific cache keys programmatically.
 
-# Available Methods:
+## Available Methods:
 
 🔹 ``set(string $key, mixed $value, ?int $ttl = null): bool``
 Store a custom value in Redis with an optional TTL (time-to-live).
@@ -152,7 +152,7 @@ $cache->flushAll(true);
 $cache->flushAll(false);
 ```
 
-## 🧩 Configuration
+# 🧩 Configuration
 
 The configuration file allows you to control all aspects of caching. Example ``config/redis-advanced-cache.php``:
 
