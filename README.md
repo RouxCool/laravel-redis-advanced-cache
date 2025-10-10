@@ -109,11 +109,11 @@ Listen to database write queries for automatic cache invalidation/
 ```
 API-specific cache toggles
 ```
-    'apis' => [
-        'orion'  => env('REDIS_ADVANCED_CACHE_API_ORION', true),
-        'rest'   => env('REDIS_ADVANCED_CACHE_API_REST', true),
-        'others' => env('REDIS_ADVANCED_CACHE_API_OTHERS', false),
-    ],
+'apis' => [
+    'orion'  => env('REDIS_ADVANCED_CACHE_API_ORION', true),
+    'rest'   => env('REDIS_ADVANCED_CACHE_API_REST', true),
+    'others' => env('REDIS_ADVANCED_CACHE_API_OTHERS', false),
+],
 ```
 Flush queries toggles
 ```
