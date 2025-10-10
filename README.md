@@ -187,7 +187,7 @@ Routes whitelists/blacklists:
     ],
 ],
 ```
-Listen to database write queries for automatic cache invalidation/
+Listen to database write queries for automatic cache invalidation:
 ```
 'listen_queries' => env('REDIS_ADVANCED_CACHE_LISTEN_QUERIES', true),
 ```
