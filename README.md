@@ -62,6 +62,10 @@ or **app/Http/Kernel.php** file
 
 The Redis Advanced Cache system can be fully disabled or manually refreshed and flushed — directly from API queries, configuration, or Artisan commands.
 
+# 🔻 **Disable Caching via URL or Request Body**
+
+You can bypass caching on specific routes by sending a noCache parameter in the URL or request body.
+
 - 🔹 **Disable cache for a request (QUERY parameter):**
 ```
 https://website.com/api/users?noCache=1
