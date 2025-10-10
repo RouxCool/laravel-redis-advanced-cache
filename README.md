@@ -159,7 +159,7 @@ Establish a connection:
 ],
 ```
 Define pattern cache: 
-__Default pattern is ``@PREFIX:@UUID:@NAME:$PATH:$METHOD:$USER_ID:$BODY_INPUT:$QUERY_INPUT``__
+_Default pattern is ``@PREFIX:@UUID:@NAME:$PATH:$METHOD:$USER_ID:$BODY_INPUT:$QUERY_INPUT``_
 ```
 'pattern' => env('REDIS_ADVANCED_CACHE_PATTERN', 'default'),
 ```
