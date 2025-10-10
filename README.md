@@ -63,7 +63,7 @@ This is particularly useful when you need to store, invalidate, or flush specifi
 
 🧠 Available Methods:
 
-🔹 set(string $key, mixed $value, ?int $ttl = null): bool
+🔹 ``set(string $key, mixed $value, ?int $ttl = null): bool``
 Store a custom value in Redis with an optional TTL (time-to-live).
 ```
 use RedisAdvancedCache\Services\RedisCacheService;
@@ -73,7 +73,7 @@ $cache = app(RedisCacheService::class);
 $cache->set('custom:user:data', ['id' => 12, 'name' => 'John'], 3600);
 $cache->set('custom:token', 'abc123');
 ```
-🔹 delete(string $key): bool
+🔹 ``delete(string $key): bool``
 Manually remove a specific cache entry.
 ```
 use RedisAdvancedCache\Services\RedisCacheService;
@@ -81,7 +81,7 @@ use RedisAdvancedCache\Services\RedisCacheService;
 $cache = app(RedisCacheService::class);
 $cache->delete('custom:user:data');
 ```
-🔹 flushAll(bool $onlyPrefixed = true): void
+🔹 ``flushAll(bool $onlyPrefixed = true): void``
 ```
 use RedisAdvancedCache\Services\RedisCacheService;
 
