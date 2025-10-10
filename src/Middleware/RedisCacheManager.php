@@ -54,7 +54,13 @@ class RedisCacheManager
     protected function updateCacheKeys(Request $request): void
     {
         $updateCache = $request->input('cache.updateCache') ?? $request->query('updateCache');
-        if (!is_array($updateCache)) return;
+
+        if (is_string($updateCache)) {
+            $updateCache = array_map('trim', explode(',', $updateCache));
+        }
+        if (!is_array($updateCache)) {
+            return;
+        }
 
         foreach ($updateCache as $key) {
             $this->cacheService->delete(":$key:");

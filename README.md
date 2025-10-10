@@ -65,7 +65,7 @@ The Redis Advanced Cache system can be fully disabled or manually refreshed and 
 🔻 **Disable Caching via URL or Request Body**
 
 You can bypass caching on specific routes by sending a noCache parameter in the URL or request body.
-**Disable cache for a request (query parameter):**
+**Disable cache for a request (QUERY parameter):**
 ```
 https://website.com/api/users?noCache=1
 ```
@@ -84,7 +84,12 @@ https://website.com/api/users?noCache=1
 You can force Redis to refresh specific cache entries using the updateCache parameter.
 This is useful when you want to invalidate a subset of cached routes without flushing everything.
 
-**Example JSON body:**
+**Flush cache keys (JSON parameter):**
+```
+https://website.com/api/users?updateCache=users,posts,services
+```
+
+**Flush cache keys (JSON input):**
 
 ```
 {
