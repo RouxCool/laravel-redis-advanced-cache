@@ -58,19 +58,19 @@ or **app/Http/Kernel.php** file
 ],
 ```
 
+🧠 SDK Response When a Key Is Cached
+
+When the SDK performs a request and the response is stored in cache, it returns a JSON object containing both the request data and cache metadata.
+
 ## 🧹 Cache Control — Disable & Flush
 
 The Redis Advanced Cache system can be fully disabled or manually refreshed and flushed — directly from API queries, configuration, or Artisan commands.
 
-🔻 **Disable Caching via URL or Request Body**
-
-You can bypass caching on specific routes by sending a noCache parameter in the URL or request body.
-**Disable cache for a request (QUERY parameter):**
+- 🔹 **Disable cache for a request (QUERY parameter):**
 ```
 https://website.com/api/users?noCache=1
 ```
-**Disable cache for a request (JSON input):**
-
+- 🔹 **Disable cache for a request (JSON input):**
 ```
 {
     "cache": {
@@ -84,13 +84,11 @@ https://website.com/api/users?noCache=1
 You can force Redis to refresh specific cache entries using the updateCache parameter.
 This is useful when you want to invalidate a subset of cached routes without flushing everything.
 
-**Flush cache keys (JSON parameter):**
+- 🔹 **Flush cache keys (JSON parameter):**
 ```
 https://website.com/api/users?updateCache=users,posts,services
 ```
-
-**Flush cache keys (JSON input):**
-
+- 🔹 **Flush cache keys (JSON input):**
 ```
 {
     "cache": {
