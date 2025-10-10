@@ -133,6 +133,13 @@ class RedisCacheManager
                 return $next($request);
             }
 
+            $this->updateCacheKeys($request);
+            $noCache = $request->input('cache.noCache') ?? $request->query('noCache');
+            if (!$noCache) {
+                RedisCacheUtils::logWarning("[RedisCacheManager] ❗ No cache requested for route → $path");
+                return $next($request);
+            }
+
             $keyCache = RedisCacheUtils::generateCacheKey([
                 'path' => $tablePath,
                 'method' => $request->method(),
@@ -141,9 +148,7 @@ class RedisCacheManager
                 'query_input' => $request->query(),
             ]);
 
-            $this->updateCacheKeys($request);
-
-            if ($this->redis->exists($keyCache) && !$request->input('cache.noCache')) {
+            if ($this->redis->exists($keyCache)) {
                 $cached = json_decode($this->redis->get($keyCache), true);
                 RedisCacheUtils::logDebug("[RedisCacheManager] ✅ Returning cached response → $keyCache");
                 return response()->json($cached);

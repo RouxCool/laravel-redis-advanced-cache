@@ -24,6 +24,7 @@ Author : ``JORDAN Charly``
 - 🔹 **Custom Cache Lifetime:** default TTL is set to 24 hours (86400 seconds).
 - 🔹 **Performance-Tuned Flushing:** cache invalidation uses Redis SCAN in batches of 300 keys, balancing speed and memory efficiency.
 - 🔹 **Automatic Model Resolution:** By default, the resolver automatically infers the correct Eloquent model — and therefore the main table name — based on the controller name handling the request.
+- 🔹 **Header cache settings:**
 
 ---
 
@@ -55,6 +56,46 @@ or **app/Http/Kernel.php** file
     // ...
     \RedisAdvancedCache\Middleware\RedisCacheManager::class,
 ],
+```
+
+## 🧹 Cache Control — Disable & Flush
+
+The Redis Advanced Cache system can be fully disabled or manually refreshed and flushed — directly from API queries, configuration, or Artisan commands.
+
+🔻 **Disable Caching via URL or Request Body**
+
+You can bypass caching on specific routes by sending a noCache parameter in the URL or request body.
+**Disable cache for a request (query parameter):**
+```
+https://website.com/api/users?noCache=1
+```
+**Disable cache for a request (JSON input):**
+
+```
+{
+    "cache": {
+        "noCache": true
+    }
+}
+```
+
+## ♻️ Force Cache Refresh for Specific Keys
+
+You can force Redis to refresh specific cache entries using the updateCache parameter.
+This is useful when you want to invalidate a subset of cached routes without flushing everything.
+
+**Example JSON body:**
+
+```
+{
+    "cache": {
+        "updateCache": [
+            "users",
+            "posts",
+            "articles"
+        ]
+    }
+}
 ```
 
 ## ⚙️ Manual Cache Control
