@@ -9,7 +9,7 @@ A Redis-based caching system for Laravel, designed to automatically cache API re
 - 🔹 **Global Redis Cache Enabled:** the advanced cache system is enabled by default (REDIS_ENABLED=true) and automatically intercepts API requests.
 - 🔹 **Debug Mode Support:** detailed debugging can be toggled via REDIS_ADVANCED_CACHE_DEBUG=true.
 - 🔹 **Custom Redis Connection:** fully configurable host, port, password, database index, and scheme through environment variables.
-- 🔹 **Unique & Isolated Cache Keys:** each key is generated using the prefix (XefiApp_local_), app name, UUID, request path, HTTP method, user ID, body, and query parameters — ensuring no collisions between environments.
+- 🔹 **Unique & Isolated Cache Keys:** each key is generated using the prefix (MyApp_local_), app name, UUID, request path, HTTP method, user ID, body, and query parameters — ensuring no collisions between environments.
 - 🔹 **Smart Route Handling:**
     - ✅ Whitelist → all routes (*) are eligible for caching.
     - 🚫 Blacklist → specific routes like api/auth/login are never cached.
@@ -82,6 +82,8 @@ $cache = app(RedisCacheService::class);
 $cache->delete('custom:user:data');
 ```
 🔹 ``flushAll(bool $onlyPrefixed = true): void``
+Completely clear cached data.
+By default, this only deletes keys starting with your app prefix (for example: MyApp_local_).
 ```
 use RedisAdvancedCache\Services\RedisCacheService;
 
