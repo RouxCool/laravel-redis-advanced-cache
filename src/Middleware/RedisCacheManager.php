@@ -58,7 +58,7 @@ class RedisCacheManager
 
         foreach ($updateCache as $key) {
             $this->cacheService->delete(":$key:");
-            $this->logDebug("[RedisCacheManager] ✅ Cache updated for key → $key");
+            RedisCacheUtils::logDebug("[RedisCacheManager] ✅ Cache updated for key → $key");
         }
     }
 
@@ -84,29 +84,7 @@ class RedisCacheManager
 
         // $this->redis->setex($keyCache, $this->ttl, json_encode($content));
         $this->cacheService->set($keyCache, json_encode($content), $this->ttl);
-        $this->logDebug("[RedisCacheManager] ✅ Response cached successfully → $keyCache");
-    }
-
-    /**
-     * Log a debug message if debug mode is enabled.
-     *
-     * @param string $message
-     * @return void
-     */
-    protected function logDebug(string $message): void
-    {
-        if ($this->debug) \Log::debug($message);
-    }
-
-    /**
-     * Log an error message if debug mode is enabled.
-     *
-     * @param string $message
-     * @return void
-     */
-    protected function logError(string $message): void
-    {
-        if ($this->debug) \Log::error($message);
+        RedisCacheUtils::logDebug("[RedisCacheManager] ✅ Response cached successfully → $keyCache");
     }
 
     /**
@@ -120,38 +98,38 @@ class RedisCacheManager
     public function handle(Request $request, \Closure $next)
     {
         $path = $request->path();
-        $this->logDebug('[RedisCacheManager] ❓ Route target : ' . $path);
+        RedisCacheUtils::logDebug('[RedisCacheManager] ❓ Route target : ' . $path);
         if (!$this->enabled || !$this->redis) {
-            $this->logDebug('[RedisCacheManager] ❗ Skipping cache for '.$path);
+            RedisCacheUtils::logDebug('[RedisCacheManager] ❗ Skipping cache for '.$path);
             return $next($request);
         }
 
         try {
             if (RedisCacheUtils::isBlacklisted($path)) {
-                $this->logDebug("[RedisCacheManager] ❗ Route blacklisted → $path");
+                RedisCacheUtils::logDebug("[RedisCacheManager] ❗ Route blacklisted → $path");
                 return $next($request);
             }
 
             $forceCache = RedisCacheUtils::isWhitelisted($path);
             if ($forceCache) {
-                $this->logDebug("[RedisCacheManager] ✅ Route whitelisted → $path");
+                RedisCacheUtils::logDebug("[RedisCacheManager] ✅ Route whitelisted → $path");
             }
 
             if ($this->listenEnabled) {
                 $this->cacheService->listenToWriteQueries();
             } else {
-                $this->logDebug("[RedisCacheManager] ❗ Write query listening is disabled.");
+                RedisCacheUtils::logDebug("[RedisCacheManager] ❗ Write query listening is disabled.");
             }
 
             $cachable = RedisCacheUtils::isCachable($request) || $forceCache;
             if (!$cachable) {
-                $this->logDebug("[RedisCacheManager] ❗ Route isn't cachable → " . $path);
+                RedisCacheUtils::logDebug("[RedisCacheManager] ❗ Route isn't cachable → " . $path);
                 return $next($request);
             }
 
             $tablePath = RedisCacheUtils::resolveMainTable($request);
             if (!$tablePath) {
-                $this->logDebug("[RedisCacheManager] ❗ Resolve model not found → " . $request->route()?->getActionName());
+                RedisCacheUtils::logDebug("[RedisCacheManager] ❗ Resolve model not found → " . $request->route()?->getActionName());
                 return $next($request);
             }
 
@@ -167,7 +145,7 @@ class RedisCacheManager
 
             if ($this->redis->exists($keyCache) && !$request->input('cache.noCache')) {
                 $cached = json_decode($this->redis->get($keyCache), true);
-                $this->logDebug("[RedisCacheManager] ✅ Returning cached response → $keyCache");
+                RedisCacheUtils::logDebug("[RedisCacheManager] ✅ Returning cached response → $keyCache");
                 return response()->json($cached);
             }
 
@@ -179,7 +157,7 @@ class RedisCacheManager
             return $response;
 
         } catch (\Throwable $e) {
-            $this->logError("[RedisCacheManager] ❌ Error handling cache for $path → " . $e->getMessage());
+            RedisCacheUtils::logError("[RedisCacheManager] ❌ Error handling cache for $path → " . $e->getMessage());
             return $next($request);
         }
     }

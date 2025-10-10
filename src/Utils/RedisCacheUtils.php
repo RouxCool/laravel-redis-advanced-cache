@@ -489,4 +489,26 @@ class RedisCacheUtils
 
         return preg_match('/^'.$pattern.'$/', $path) === 1;
     }
+
+    /**
+     * Log a debug message if debug mode is enabled.
+     *
+     * @param string $message
+     * @return void
+     */
+    protected function logDebug(string $message): void
+    {
+        if ($this->debug) \Log::debug($message);
+    }
+
+    /**
+     * Log an error message if debug mode is enabled.
+     *
+     * @param string $message
+     * @return void
+     */
+    protected function logError(string $message): void
+    {
+        if ($this->debug) \Log::error($message);
+    }
 }
