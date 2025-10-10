@@ -117,12 +117,12 @@ API-specific cache toggles
 ```
 Flush queries toggles
 ```
-    'flush' => [
-        'right_table' => env('REDIS_ADVANCED_CACHE_FLUSH_RIGHT_TABLE', true),
-        'left_table' => env('REDIS_ADVANCED_CACHE_FLUSH_LEFT_TABLE', false),
-        'on_left' => env('REDIS_ADVANCED_CACHE_FLUSH_ON_LEFT', false),
-        'on_right' => env('REDIS_ADVANCED_CACHE_FLUSH_ON_RIGHT', false),
-    ],
+'flush' => [
+    'right_table' => env('REDIS_ADVANCED_CACHE_FLUSH_RIGHT_TABLE', true),
+    'left_table' => env('REDIS_ADVANCED_CACHE_FLUSH_LEFT_TABLE', false),
+    'on_left' => env('REDIS_ADVANCED_CACHE_FLUSH_ON_LEFT', false),
+    'on_right' => env('REDIS_ADVANCED_CACHE_FLUSH_ON_RIGHT', false),
+],
 ```
 Advanced cache options:
 ```
