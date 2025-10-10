@@ -56,6 +56,40 @@ or **app/Http/Kernel.php** file
 ],
 ```
 
+## ⚙️ Manual Cache Control
+
+In addition to automatic API caching, the package also allows manual control of Redis cache entries via the RedisCacheService.
+This is particularly useful when you need to store, invalidate, or flush specific cache keys programmatically.
+
+🧠 Available Methods:
+
+🔹 set(string $key, mixed $value, ?int $ttl = null): bool
+Store a custom value in Redis with an optional TTL (time-to-live).
+```
+use RedisAdvancedCache\Services\RedisCacheService;
+
+$cache = app(RedisCacheService::class);
+
+$cache->set('custom:user:data', ['id' => 12, 'name' => 'John'], 3600);
+$cache->set('custom:token', 'abc123');
+```
+🔹 delete(string $key): bool
+Manually remove a specific cache entry.
+```
+use RedisAdvancedCache\Services\RedisCacheService;
+
+$cache = app(RedisCacheService::class);
+$cache->delete('custom:user:data');
+```
+🔹 flushAll(bool $onlyPrefixed = true): void
+```
+use RedisAdvancedCache\Services\RedisCacheService;
+
+$cache = app(RedisCacheService::class);
+$cache->flushAll(true);
+$cache->flushAll(false);
+```
+
 ## 🧩 Configuration
 
 The configuration file allows you to control all aspects of caching. Example ``config/redis-advanced-cache.php``:
