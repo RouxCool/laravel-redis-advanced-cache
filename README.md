@@ -127,7 +127,7 @@ This is particularly useful when you need to store, invalidate, or flush specifi
 
 ## Available Methods:
 
-🔹 ``set(string $key, mixed $value, ?int $ttl = null): bool``
+🔹 ``get(?Request $request = null, ?string $key = null): ?array``
 Return array keys from request keys or custom key.
 ```
 use RedisAdvancedCache\Services\RedisCacheService;
