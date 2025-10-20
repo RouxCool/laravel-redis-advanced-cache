@@ -136,6 +136,7 @@ $cache = app(RedisCacheService::class);
 
 $resultsKeys = $cache->get($request);
 $resultsKeys = $cache->get(null, 'users');
+```
 🔹 ``set(string $key, mixed $value, ?int $ttl = null): bool``
 Store a custom value in Redis with an optional TTL (time-to-live).
 ```
