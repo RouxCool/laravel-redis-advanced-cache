@@ -101,6 +101,67 @@ class RedisCacheService
     }
 
     /**
+     * Retrieve cached data from Redis based on a key or request.
+     *
+     * If the key is not explicitly provided, it will be generated automatically
+     * using RedisCacheUtils::generateCacheKey() based on the request context.
+     *
+     * This method can also return a list of keys matching the given pattern
+     * (useful for debugging or admin inspection).
+     *
+     * @param \Illuminate\Http\Request|null $request  The current HTTP request (optional).
+     * @param string|null $key  The Redis key or partial key pattern.
+     * @return array|null  Returns an associative array of key => value, or null if not found.
+     */
+    /**
+     * Retrieve cached data from Redis based on a key or request.
+     *
+     * If the key is not explicitly provided, it will be automatically resolved
+     * using RedisCacheUtils::resolveMainTable() from the request context.
+     *
+     * This version uses the Redis "KEYS" command for direct retrieval — faster
+     * for debugging or administrative queries, but not recommended for very large datasets.
+     *
+     * @param \Illuminate\Http\Request|null $request
+     * @param string|null $key
+     * @return array|null  Returns an associative array of key => value, or null if not found.
+     */
+    public function get(?\Illuminate\Http\Request $request = null, ?string $key = null): ?array
+    {
+        if (!$this->enabled || !$this->redis) {
+            RedisCacheUtils::logWarning('[RedisCacheService] ❗ Cannot get cache key — Redis disabled or disconnected.');
+            return null;
+        }
+
+        try {
+            if (!$key && $request) {
+                $key = RedisCacheUtils::resolveMainTable($request);
+                if (!$key) {
+                    RedisCacheUtils::logWarning("[RedisCacheService] ❗ Resolve model not found → " . $request->route()?->getActionName());
+                    return null;
+                }
+
+                RedisCacheUtils::logDebug("[RedisCacheService] 🧩 Search pattern cache key: {$key}");
+            }
+
+            $keys = $this->redis->keys("*{$key}*");
+
+            if (empty($keys)) {
+                RedisCacheUtils::logWarning("[RedisCacheService] ⚠️ No cache entries found for key pattern: {$key}");
+                return null;
+            }
+
+            RedisCacheUtils::logDebug("[RedisCacheService] ✅ Found " . count($keys) . " cache keys for pattern: {$key}");
+            RedisCacheUtils::logDebug("[RedisCacheService] ✅ Found keys : " . json_encode($keys));
+            return $keys;
+
+        } catch (\Throwable $e) {
+            RedisCacheUtils::logError('[RedisCacheService] ❌ Error retrieving cache keys for pattern ' . $key . ': ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
      * Store a value in Redis with a given key and optional TTL.
      *
      * If the value n'est pas une chaîne, il sera automatiquement encodé en JSON.
