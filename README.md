@@ -128,7 +128,7 @@ This is particularly useful when you need to store, invalidate, or flush specifi
 ## Available Methods:
 
 🔹 ``get(?Request $request = null, ?string $key = null): ?array``
-Return array keys from request keys or custom key.
+Return array keys from request or custom key.
 ```
 use RedisAdvancedCache\Services\RedisCacheService;
 
