@@ -24,7 +24,7 @@ class RedisCacheServiceProvider extends ServiceProvider
             __DIR__ . '/../../config/redis-advanced-cache.php' => config_path('redis-advanced-cache.php'),
         ], 'config');
 
-        if (!empty($config['debug'])) {
+        if (isset($config['debug']) && $config['debug'] === true) {
             \Log::info('=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=');
             \Log::info('');
             \Log::info('         [Redis Advanced Cache]');
