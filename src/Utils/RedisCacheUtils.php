@@ -2,7 +2,7 @@
 
 namespace RedisAdvancedCache\Utils;
 
-use App\Rest\Controller as RestBaseController;
+use App\Rest\Controllers\Controller as RestBaseController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Orion\Http\Controllers\Controller as OrionBaseController;
