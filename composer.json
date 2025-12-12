@@ -3,7 +3,7 @@
   "description": "Advanced Redis-based caching system for Laravel REST and Orion controllers.",
   "type": "library",
   "license": "MIT",
-  "version": "1.2.7",
+  "version": "1.2.8",
   "minimum-stability": "dev",
   "prefer-stable": true,
   "author": "RouxCool",
