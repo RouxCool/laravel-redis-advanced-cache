@@ -141,7 +141,7 @@ class RedisCacheManager
 
             $this->updateCacheKeys($request);
             $noCache = $request->input('cache.noCache') ?? $request->query('noCache');
-            if (!$noCache) {
+            if ($noCache) {
                 RedisCacheUtils::logWarning("[RedisCacheManager] ❗ No cache requested for route → $path");
                 return $next($request);
             }
