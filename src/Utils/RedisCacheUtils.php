@@ -2,10 +2,8 @@
 
 namespace RedisAdvancedCache\Utils;
 
-use App\Rest\Controllers\Controller as RestBaseController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Orion\Http\Controllers\Controller as OrionBaseController;
 
 class RedisCacheUtils
 {
@@ -19,33 +17,13 @@ class RedisCacheUtils
      */
     public static function isCachable(Request $request): bool
     {
-        if (self::isRouteManagedByRestApi($request)) {
+        if (self::isRouteManaged($request, 'rest')) {
             return self::isCacheableRestApi($request);
         }
-        if (self::isRouteManagedByOrion($request)) {
+        if (self::isRouteManaged($request, 'orion')) {
             return self::isCacheableOrion($request);
         }
         return false;
-    }
-
-    // ================================
-    // REST API Cache Checks
-    // ================================
-
-    /**
-     * Determine if a REST API request is cacheable.
-     *
-     * @param Request $request The current HTTP request.
-     * @return bool True if the request can be cached, false otherwise.
-     */
-    private static function isCacheableRestApi(Request $request): bool
-    {
-        $cacheAuthenticatedOnly = config('redis-advanced-cache.options.cache_authenticated_only', true);
-        if ($cacheAuthenticatedOnly) {
-            return auth()->check() && !self::isWriteOperationRestAPI($request) && config('redis-advanced-cache.apis.rest.enabled');
-        } else {
-            return !self::isWriteOperationRestAPI($request) && config('redis-advanced-cache.apis.rest.enabled');
-        }
     }
 
     /**
@@ -68,26 +46,48 @@ class RedisCacheUtils
      * Check if the current route is managed by a REST controller.
      *
      * @param Request $request The current HTTP request.
+     * @param string $configKey The config key namespace
      * @return bool True if the controller is a REST controller, false otherwise.
      */
-    private static function isRouteManagedByRestApi(Request $request): bool
+    private static function isRouteManaged(Request $request, string $configKey): bool
     {
-        if (!class_exists(RestBaseController::class)) {
-            return false;
-        }
-
         $route = $request->route();
         if (!$route) {
             return false;
         }
 
-        $baseController = config("redis-advanced-cache.apis.rest.namespace");
+        $controller = $route->getController();
+        if (!$controller) {
+            return false;
+        }
+
+        $baseController = config("redis-advanced-cache.apis.$configKey.namespace");
 
         if (!$baseController || !class_exists($baseController)) {
             return false;
         }
 
         return $controller instanceof $baseController;
+    }
+
+    // ================================
+    // REST API Cache Checks
+    // ================================
+
+    /**
+     * Determine if a REST API request is cacheable.
+     *
+     * @param Request $request The current HTTP request.
+     * @return bool True if the request can be cached, false otherwise.
+     */
+    private static function isCacheableRestApi(Request $request): bool
+    {
+        $cacheAuthenticatedOnly = config('redis-advanced-cache.options.cache_authenticated_only', true);
+        if ($cacheAuthenticatedOnly) {
+            return auth()->check() && !self::isWriteOperationRestAPI($request) && config('redis-advanced-cache.apis.rest.enabled');
+        } else {
+            return !self::isWriteOperationRestAPI($request) && config('redis-advanced-cache.apis.rest.enabled');
+        }
     }
 
     // ================================
@@ -124,32 +124,6 @@ class RedisCacheUtils
         $end = end($parts);
 
         return !in_array($end, ['index', 'search', 'show']);
-    }
-
-    /**
-     * Check if the current route is managed by an Orion controller.
-     *
-     * @param Request $request The current HTTP request.
-     * @return bool True if the controller is an Orion controller, false otherwise.
-     */
-    private static function isRouteManagedByOrion(Request $request): bool
-    {
-        if (!class_exists(OrionBaseController::class)) {
-            return false;
-        }
-
-        $route = $request->route();
-        if (!$route) {
-            return false;
-        }
-
-        $baseController = config("redis-advanced-cache.apis.orion.namespace");
-
-        if (!$baseController || !class_exists($baseController)) {
-            return false;
-        }
-
-        return $controller instanceof $baseController;
     }
 
     // ================================
