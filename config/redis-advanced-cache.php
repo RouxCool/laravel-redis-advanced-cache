@@ -237,9 +237,14 @@ return [
     */
 
     'apis' => [
-        'orion' => env('REDIS_ADVANCED_CACHE_API_ORION', true),
-        'rest' => env('REDIS_ADVANCED_CACHE_API_REST', true),
-        'others' => env('REDIS_ADVANCED_CACHE_API_OTHERS', false),
+        'orion' => [
+            'enabled' => env('REDIS_ADVANCED_CACHE_API_ORION', true),
+            'namespace' => Orion\Http\Controllers\Controller::class,
+        ],
+        'rest' => [
+            'enabled' => env('REDIS_ADVANCED_CACHE_API_REST', true),
+            'namespace' => App\Rest\Controllers\Controller::class,
+        ]
     ],
 
     /*

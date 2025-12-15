@@ -38,13 +38,13 @@ class RedisCacheUtils
      * @param Request $request The current HTTP request.
      * @return bool True if the request can be cached, false otherwise.
      */
-    public static function isCacheableRestApi(Request $request): bool
+    private static function isCacheableRestApi(Request $request): bool
     {
         $cacheAuthenticatedOnly = config('redis-advanced-cache.options.cache_authenticated_only', true);
         if ($cacheAuthenticatedOnly) {
-            return auth()->check() && !self::isWriteOperationRestAPI($request) && config('redis-advanced-cache.apis.rest');
+            return auth()->check() && !self::isWriteOperationRestAPI($request) && config('redis-advanced-cache.apis.rest.enabled');
         } else {
-            return !self::isWriteOperationRestAPI($request) && config('redis-advanced-cache.apis.rest');
+            return !self::isWriteOperationRestAPI($request) && config('redis-advanced-cache.apis.rest.enabled');
         }
     }
 
@@ -70,7 +70,7 @@ class RedisCacheUtils
      * @param Request $request The current HTTP request.
      * @return bool True if the controller is a REST controller, false otherwise.
      */
-    public static function isRouteManagedByRestApi(Request $request): bool
+    private static function isRouteManagedByRestApi(Request $request): bool
     {
         if (!class_exists(RestBaseController::class)) {
             return false;
@@ -81,9 +81,13 @@ class RedisCacheUtils
             return false;
         }
 
-        $controller = $route->getController();
+        $baseController = config("redis-advanced-cache.apis.rest.namespace");
 
-        return $controller instanceof RestBaseController;
+        if (!$baseController || !class_exists($baseController)) {
+            return false;
+        }
+
+        return $controller instanceof $baseController;
     }
 
     // ================================
@@ -96,13 +100,13 @@ class RedisCacheUtils
      * @param Request $request The current HTTP request.
      * @return bool True if the request can be cached, false otherwise.
      */
-    public static function isCacheableOrion(Request $request): bool
+    private static function isCacheableOrion(Request $request): bool
     {
         $cacheAuthenticatedOnly = config('redis-advanced-cache.options.cache_authenticated_only', true);
         if ($cacheAuthenticatedOnly) {
-            return auth()->check() && !self::isWriteOperationOrion($request) && config('redis-advanced-cache.apis.orion');
+            return auth()->check() && !self::isWriteOperationOrion($request) && config('redis-advanced-cache.apis.orion.enabled');
         } else {
-            return !self::isWriteOperationOrion($request) && config('redis-advanced-cache.apis.orion');
+            return !self::isWriteOperationOrion($request) && config('redis-advanced-cache.apis.orion.enabled');
         }
     }
 
@@ -128,7 +132,7 @@ class RedisCacheUtils
      * @param Request $request The current HTTP request.
      * @return bool True if the controller is an Orion controller, false otherwise.
      */
-    public static function isRouteManagedByOrion(Request $request): bool
+    private static function isRouteManagedByOrion(Request $request): bool
     {
         if (!class_exists(OrionBaseController::class)) {
             return false;
@@ -139,9 +143,13 @@ class RedisCacheUtils
             return false;
         }
 
-        $controller = $route->getController();
+        $baseController = config("redis-advanced-cache.apis.orion.namespace");
 
-        return $controller instanceof OrionBaseController;
+        if (!$baseController || !class_exists($baseController)) {
+            return false;
+        }
+
+        return $controller instanceof $baseController;
     }
 
     // ================================
@@ -155,7 +163,7 @@ class RedisCacheUtils
      * 
      * @return array<string> list of relations when extract SQL query
      */
-    public static function extractRelationsFromSQL($sql): array
+    private static function extractRelationsFromSQL($sql): array
     {
         $joins = self::parseJoinsFromSql($sql);
         $relations = [];
@@ -217,7 +225,7 @@ class RedisCacheUtils
      *
      * @return array<int, array<string, string>> Each join contains keys: operation, type, right_table, left_table, on_left, on_right
      */
-    public static function parseJoinsFromSql(string $sql): array
+    private static function parseJoinsFromSql(string $sql): array
     {
         $pattern = '/(JOIN|LEFT\s+JOIN|RIGHT\s+JOIN|INNER\s+JOIN|OUTER\s+JOIN)\s+([`"\[\]\w.-]+)\s+ON\s+([`"\[\]\w.-]+)\s*=\s*([`"\[\]\w.-]+)/ix';
 
@@ -374,7 +382,7 @@ class RedisCacheUtils
      *
      * @return array<string> list of table names affected by the query
      */
-    public static function getAffectedTables(string $sql): array
+    private static function getAffectedTables(string $sql): array
     {
         $operation = self::detectWriteOperation($sql);
 
@@ -482,7 +490,7 @@ class RedisCacheUtils
      *
      * @throws \Exception If the pattern is invalid or regex compilation fails.
      */
-    public static function matchPattern(string $pattern, string $path): bool
+    private static function matchPattern(string $pattern, string $path): bool
     {
         $pattern = preg_quote($pattern, '/');
         $pattern = str_replace('\*', '.*', $pattern);
