@@ -31,7 +31,6 @@ class RedisCacheManager
      */
     public function __construct()
     {
-        \Log::info("manager");
         $this->cacheService = RedisCacheService::getInstance();
         $this->redis = $this->cacheService->getRedis();
 
