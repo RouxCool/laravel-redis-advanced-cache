@@ -56,18 +56,25 @@ class RedisCacheUtils
             return false;
         }
 
-        $controller = $route->getController();
-        if (!$controller) {
-            return false;
-        }
-
         $baseController = config("redis-advanced-cache.apis.$configKey.namespace");
 
         if (!$baseController || !class_exists($baseController)) {
             return false;
         }
 
-        return $controller instanceof $baseController;
+        $controllerClass = $route->getControllerClass();
+
+        if (!$controllerClass) {
+            $actionName = $route->getActionName();
+
+            if (!$actionName || !str_contains($actionName, '@')) {
+                return false;
+            }
+
+            [$controllerClass] = explode('@', $actionName);
+        }
+
+        return is_a($controllerClass, $baseController, true);
     }
 
     // ================================
