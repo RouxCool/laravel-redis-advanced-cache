@@ -10,7 +10,7 @@ use RedisAdvancedCache\Utils\RedisCacheUtils;
 class RedisCacheManager
 {
     protected RedisCacheService $cacheService;
-    protected ?\Redis $redis;
+    protected $redis;
     protected bool $enabled;
     protected bool $debug;
     protected bool $listenEnabled;

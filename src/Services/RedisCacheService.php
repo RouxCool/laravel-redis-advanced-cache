@@ -7,16 +7,19 @@ use RedisAdvancedCache\Utils\RedisCacheUtils;
 
 class RedisCacheService
 {
-    protected ?\Redis $redis = null;
+    protected $redis = null;
     protected string $prefix;
+    protected string $pattern;
     protected bool $debug;
     protected bool $enabled;
     protected int $scanCount;
     protected int $ttl;
     protected string $host;
     protected int $port;
+    protected ?string $username;
     protected ?string $password;
     protected int $db;
+    protected string $scheme;
     protected bool $listenEnabled;
     private static ?self $instance = null;
 
@@ -39,8 +42,10 @@ class RedisCacheService
         $conn = config('redis-advanced-cache.connection');
         $this->host = $conn['host'] ?? '127.0.0.1';
         $this->port = $conn['port'] ?? 6379;
+        $this->username = $conn['username'] ?? null;
         $this->password = $conn['password'] ?? null;
         $this->db = $conn['database'] ?? 1;
+        $this->scheme = $conn['scheme'] ?? 'tcp';
 
         $this->initRedis();
     }
@@ -61,16 +66,77 @@ class RedisCacheService
         }
 
         try {
-            $this->redis = new \Redis();
-            $this->redis->pconnect($this->host, $this->port);
-            if ($this->password) $this->redis->auth($this->password);
-            $this->redis->select($this->db);
+            if (class_exists(\Redis::class)) {
+                $this->redis = new \Redis();
+                $this->redis->pconnect($this->host, $this->port);
 
-            RedisCacheUtils::logDebug('[RedisCacheService] ✅ Redis connection established successfully.');
+                if ($this->username) {
+                    $this->redis->auth([$this->username, (string) $this->password]);
+                } elseif ($this->password) {
+                    $this->redis->auth($this->password);
+                }
+
+                $this->redis->select($this->db);
+                RedisCacheUtils::logDebug('[RedisCacheService] ✅ Redis connection established successfully with phpredis.');
+                return;
+            }
+
+            if (class_exists(\Predis\Client::class)) {
+                $parameters = [
+                    'scheme' => $this->scheme,
+                    'host' => $this->host,
+                    'port' => $this->port,
+                    'database' => $this->db,
+                ];
+
+                if ($this->username) {
+                    $parameters['username'] = $this->username;
+                }
+
+                if ($this->password) {
+                    $parameters['password'] = $this->password;
+                }
+
+                $this->redis = new \Predis\Client($parameters);
+                $this->redis->connect();
+                $this->redis->ping();
+
+                RedisCacheUtils::logDebug('[RedisCacheService] ✅ Redis connection established successfully with predis.');
+                return;
+            }
+
+            throw new \RuntimeException('Neither the phpredis extension nor Predis is available.');
         } catch (\Throwable $e) {
             $this->redis = null;
             RedisCacheUtils::logError('[RedisCacheService] ❌ Redis connection failed: '.$e->getMessage());
         }
+    }
+
+    private function isPredisClient(): bool
+    {
+        return $this->redis instanceof \Predis\Client;
+    }
+
+    private function scanKeys(?int &$cursor, string $pattern): array|false
+    {
+        if ($this->isPredisClient()) {
+            [$nextCursor, $keys] = $this->redis->scan((string) ($cursor ?? 0), [
+                'MATCH' => $pattern,
+                'COUNT' => $this->scanCount,
+            ]);
+
+            $cursor = (int) $nextCursor;
+
+            return array_map(fn ($key) => (string) $key, $keys ?? []);
+        }
+
+        $keys = $this->redis->scan($cursor, $pattern, $this->scanCount);
+
+        if ($keys === false) {
+            return false;
+        }
+
+        return array_map(fn ($key) => (string) $key, $keys);
     }
 
     /**
@@ -95,7 +161,7 @@ class RedisCacheService
      *
      * @return \Redis|null the Redis connection instance or null if disabled/unavailable
      */
-    public function getRedis(): ?\Redis
+    public function getRedis(): mixed
     {
         return $this->redis;
     }
@@ -145,6 +211,7 @@ class RedisCacheService
             }
 
             $keys = $this->redis->keys("*{$key}*");
+            $keys = array_map(fn($cacheKey) => (string) $cacheKey, $keys);
 
             if (empty($keys)) {
                 RedisCacheUtils::logWarning("[RedisCacheService] ⚠️ No cache entries found for key pattern: {$key}");
@@ -216,11 +283,9 @@ class RedisCacheService
         try {
             $cursor = null;
             do {
-                $results = $this->redis->scan($cursor, "*$pattern*", $this->scanCount);
+                $results = $this->scanKeys($cursor, "*$pattern*");
 
                 if ($results === false) break;
-
-                $results = array_map(fn($key) => (string)$key, $results);
 
                 if (!empty($results)) {
                     $this->redis->del($results);
@@ -256,7 +321,7 @@ class RedisCacheService
             $pattern = $onlyPrefixed ? "{$this->prefix}*" : '*';
 
             do {
-                $keys = $this->redis->scan($cursor, $pattern, $this->scanCount);
+                $keys = $this->scanKeys($cursor, $pattern);
 
                 if ($keys === false) break;
 

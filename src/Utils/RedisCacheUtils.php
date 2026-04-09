@@ -434,7 +434,8 @@ class RedisCacheUtils
      */
     public static function generateCacheKey(array $params): string
     {
-        $pattern = config('redis-advanced-cache.pattern') !== 'default' ?: self::$defaultPattern;
+        $pattern = config('redis-advanced-cache.pattern', 'default');
+        $pattern = $pattern !== 'default' ? $pattern : self::$defaultPattern;
         $identifier = config('redis-advanced-cache.key_identifier', []);
         $data = array_merge($params, $identifier);
 
